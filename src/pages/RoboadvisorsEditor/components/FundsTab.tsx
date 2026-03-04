@@ -2,21 +2,18 @@ import React from "react";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import { GradientHistoryCard } from "../../../components/common/GradientHistoryCard";
 import type { RoboadvisorFund } from "../../../interfaces/roboadvisor-detail/roboadvisor-detail-interface";
-import SavingBadge from "../../../components/common/SavingBadge";
 
 export const FundsTab: React.FC<{
   funds: RoboadvisorFund[];
   onAdd: () => void;
   onEdit: (f: RoboadvisorFund) => void;
   onDelete: (id: number) => void;
-  isSavingList?: boolean;
-}> = ({ funds, onAdd, onEdit, onDelete, isSavingList = false }) => {
+}> = ({ funds, onAdd, onEdit, onDelete }) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
         <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Fund Allocations</h4>
-        {isSavingList && <SavingBadge />}
       </div>
         <button
           onClick={onAdd}

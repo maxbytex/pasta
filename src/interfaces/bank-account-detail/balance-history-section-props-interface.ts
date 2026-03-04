@@ -8,5 +8,5 @@ export interface BalanceHistorySectionProps {
   fetchNextPage: () => void;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
-  isSavingList?: boolean;
+  deletingIds?: Set<number>;
 }

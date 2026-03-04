@@ -5,5 +5,4 @@ export interface BankAccountsListProps {
   loading: boolean;
   error?: string | null;
   onCreate: () => void;
-  isSavingList?: boolean;
 }

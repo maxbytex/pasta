@@ -6,6 +6,7 @@ import { createBankAccount, updateBankAccount, deleteBankAccount } from "../../s
 import { useBankAccounts, useInvalidateQueries } from "../../hooks/useFinanceData";
 import { useMutation } from "@tanstack/react-query";
 import { formatDecimalAsPercentageForInput, convertPercentageStringToDecimal } from "../../utils/percentage-utils";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
 
 import type { BankAccount } from "../../interfaces/bank-account-interface";
 
@@ -102,7 +103,7 @@ const InputModal: React.FC<InputModalProps> = ({
              disabled={isSaving || !canSave}
               className="px-5 py-3 sm:py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-300 dark:disabled:bg-emerald-700 disabled:opacity-70 disabled:cursor-not-allowed disabled:text-white text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95 disabled:shadow-none cursor-pointer"
            >
-             {isSaving ? "Savings..." : "Save"}
+             {isSaving ? "Saving..." : "Save"}
            </button>
         </div>
       </div>
@@ -157,10 +158,20 @@ export const BankAccountsEditor: React.FC = () => {
     setShowAccountModal(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (!confirm("Delete this bank account and all its data?")) return;
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  const handleDelete = (id: number) => setPendingDeleteId(id);
+  const confirmDelete = () => {
+    if (pendingDeleteId === null) return;
+    const id = pendingDeleteId;
+    setIsDeletingAccount(true);
     deleteAccountMutation.mutate(id, {
       onSuccess: () => navigate("/editors/banks"),
+      onSettled: () => {
+        setIsDeletingAccount(false);
+        setPendingDeleteId(null);
+      },
     });
   };
 
@@ -177,19 +188,22 @@ export const BankAccountsEditor: React.FC = () => {
     const taxValue = convertPercentageStringToDecimal(finalTaxPercentage || "");
     setIsSavingAccount(true);
     if (editingAccount) {
-      updateAccountMutation.mutate({ id: editingAccount.id, name: finalName, type: finalType, taxPercentage: taxValue ?? null }, { onSettled: () => setIsSavingAccount(false) });
+      updateAccountMutation.mutate({ id: editingAccount.id, name: finalName, type: finalType, taxPercentage: taxValue ?? null }, {
+        onSuccess: () => setShowAccountModal(false),
+        onSettled: () => setIsSavingAccount(false),
+      });
     } else {
-      createAccountMutation.mutate({ name: finalName, type: finalType, taxPercentage: taxValue ?? null }, { onSettled: () => setIsSavingAccount(false) });
+      createAccountMutation.mutate({ name: finalName, type: finalType, taxPercentage: taxValue ?? null }, {
+        onSuccess: () => setShowAccountModal(false),
+        onSettled: () => setIsSavingAccount(false),
+      });
     }
-    setShowAccountModal(false);
   };
-
-  const isSavingAccountsList = createAccountMutation.isPending || updateAccountMutation.isPending || deleteAccountMutation.isPending;
 
   return (
     <>
       <Routes>
-        <Route index element={<BankAccountsList accounts={accounts} loading={loading} error={error ? (error instanceof Error ? error.message : String(error)) : null} onCreate={handleCreate} isSavingList={isSavingAccountsList} />} />
+        <Route index element={<BankAccountsList accounts={accounts} loading={loading} error={error ? (error instanceof Error ? error.message : String(error)) : null} onCreate={handleCreate} />} />
         <Route
           path=":accountId/:tab"
           element={
@@ -217,6 +231,12 @@ export const BankAccountsEditor: React.FC = () => {
           isSaving={isSavingAccount}
         />
       )}
+      <DeleteConfirmModal
+        open={pendingDeleteId !== null}
+        isDeleting={isDeletingAccount}
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </>
   );
 };

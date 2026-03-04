@@ -8,6 +8,7 @@ import { getRegistrationOptions, verifyRegistrationResponse } from "../services/
 import type { AppSettings } from "../interfaces/app-settings-interface";
 import { WebAuthnUtils } from "../utils/credential-utils";
 import { KeyRound, Loader2, Monitor, Moon, Sun, X } from "lucide-react";
+import { CurrencySelect } from "../components/common/CurrencySelect";
 
 export const SettingsPage: React.FC = () => {
   const [settings, setSettings] = useState<AppSettings>(() => {
@@ -104,7 +105,7 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col relative max-md:rounded-none max-md:border-0">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -113,110 +114,114 @@ export const SettingsPage: React.FC = () => {
         </div>
       </div>
 
-      <form className="space-y-6">
-          <div>
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-              Passkey Management
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Register additional passkeys to access your account from multiple devices.
+      <div className="space-y-10 max-w-lg">
+
+        {/* General */}
+        <section>
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-5">
+            General
+          </h4>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-900 dark:text-white">Default Currency</label>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+              Pre-filled currency when creating new entries.
             </p>
-
-            {passkeyError && (
-              <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <p className="text-red-800 dark:text-red-400 text-sm">
-                  {passkeyError}
-                </p>
-              </div>
-            )}
-
-            {passkeySuccess && (
-              <div className="mb-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
-                <p className="text-emerald-800 dark:text-emerald-400 text-sm">
-                  Passkey registered successfully!
-                </p>
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => {
-                setShowPasskeyModal(true);
-                setPasskeyError(null);
-                setPasskeySuccess(false);
-              }}
-              className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl font-semibold text-sm leading-none transition-all active:translate-y-[1px] active:scale-[0.995] cursor-pointer bg-emerald-500 text-white hover:bg-emerald-600 flex items-center"
-            >
-              <KeyRound className="w-4 h-4 mr-2" />
-              Add Passkey
-            </button>
-          </div>
-
-          <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700 max-w-lg">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-              Theme
-            </h3>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setSettings((prev) => ({ ...prev, theme: "light" }));
-                  applyTheme("light");
-                }}
-                className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                  settings.theme === "light"
-                    ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20"
-                    : "border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600"
-                }`}
-              >
-                <Sun className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  Light
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSettings((prev) => ({ ...prev, theme: "dark" }));
-                  applyTheme("dark");
-                }}
-                className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                  settings.theme === "dark"
-                    ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20"
-                    : "border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600"
-                }`}
-              >
-                <Moon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  Dark
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSettings((prev) => ({ ...prev, theme: "system" }));
-                  applyTheme("system");
-                }}
-                className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                  settings.theme === "system" || !settings.theme
-                    ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20"
-                    : "border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600"
-                }`}
-              >
-                <Monitor className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  System
-                </span>
-              </button>
+            <div style={{ maxWidth: 180 }}>
+              <CurrencySelect
+                value={settings.defaultCurrency || ""}
+                onChange={(v) => setSettings((prev) => ({ ...prev, defaultCurrency: v }))}
+              />
             </div>
           </div>
+        </section>
 
-          <div className="flex items-center justify-start pt-4">
-            <span className="text-sm text-emerald-600 dark:text-emerald-400">
-              Settings are saved automatically
-            </span>
+        {/* Appearance */}
+        <section>
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-5">
+            Appearance
+          </h4>
+          <div className="flex flex-col gap-1 mb-3">
+            <label className="text-sm font-medium text-gray-900 dark:text-white">Theme</label>
           </div>
-        </form>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => { setSettings((prev) => ({ ...prev, theme: "light" })); applyTheme("light"); }}
+              className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                settings.theme === "light"
+                  ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20"
+                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+              }`}
+            >
+              <Sun className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Light</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSettings((prev) => ({ ...prev, theme: "dark" })); applyTheme("dark"); }}
+              className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                settings.theme === "dark"
+                  ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20"
+                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+              }`}
+            >
+              <Moon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Dark</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSettings((prev) => ({ ...prev, theme: "system" })); applyTheme("system"); }}
+              className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                settings.theme === "system" || !settings.theme
+                  ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20"
+                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+              }`}
+            >
+              <Monitor className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">System</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Authentication */}
+        <section>
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-5">
+            Authentication
+          </h4>
+          <div className="flex flex-col gap-1 mb-4">
+            <label className="text-sm font-medium text-gray-900 dark:text-white">Passkeys</label>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Register additional passkeys to access your account from multiple devices.
+            </p>
+          </div>
+
+          {passkeyError && (
+            <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-red-800 dark:text-red-400 text-sm">{passkeyError}</p>
+            </div>
+          )}
+
+          {passkeySuccess && (
+            <div className="mb-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+              <p className="text-emerald-800 dark:text-emerald-400 text-sm">Passkey registered successfully!</p>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => { setShowPasskeyModal(true); setPasskeyError(null); setPasskeySuccess(false); }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all active:translate-y-[1px] active:scale-[0.995] cursor-pointer bg-emerald-500 text-white hover:bg-emerald-600"
+          >
+            <KeyRound className="w-4 h-4" />
+            Add Passkey
+          </button>
+        </section>
+
+        <p className="text-sm text-emerald-600 dark:text-emerald-400">
+          Settings are saved automatically
+        </p>
+
+      </div>
 
       {/* Passkey Registration Modal */}
       {showPasskeyModal && (

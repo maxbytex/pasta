@@ -8,6 +8,7 @@ import type { BankAccount } from "../../interfaces/bank-account-interface";
 import type { RoboadvisorInterface } from "../../interfaces/roboadvisor-interface";
 import { useRoboadvisors, useBankAccounts, useInvalidateQueries } from "../../hooks/useFinanceData";
 import { useMutation } from "@tanstack/react-query";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
 
  type RoboadvisorPayload = Parameters<typeof createRoboadvisor>[0];
 
@@ -23,6 +24,8 @@ export const RoboadvisorsEditor: React.FC = () => {
   const [showRoboadvisorModal, setShowRoboadvisorModal] = useState(false);
   const [editingRoboadvisor, setEditingRoboadvisor] = useState<RoboadvisorInterface | null>(null);
   const [isSavingRoboadvisor, setIsSavingRoboadvisor] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [isDeletingRoboadvisor, setIsDeletingRoboadvisor] = useState(false);
   // detailReloadKey removed — React Query invalidation replaces manual reloads
 
   // Form states for roboadvisor
@@ -82,8 +85,19 @@ export const RoboadvisorsEditor: React.FC = () => {
   });
 
   const handleDelete = (id: number) => {
-    if (!confirm("Delete this roboadvisor and all its data?")) return;
-    deleteMutation.mutate(id);
+    setPendingDeleteId(id);
+  };
+
+  const confirmDeleteRoboadvisor = () => {
+    if (pendingDeleteId === null) return;
+    const id = pendingDeleteId;
+    setIsDeletingRoboadvisor(true);
+    deleteMutation.mutate(id, {
+      onSettled: () => {
+        setIsDeletingRoboadvisor(false);
+        setPendingDeleteId(null);
+      },
+    });
   };
 
   const createMutation = useMutation<RoboadvisorInterface, unknown, RoboadvisorPayload>({
@@ -96,51 +110,42 @@ export const RoboadvisorsEditor: React.FC = () => {
     onSuccess: () => invalidate.invalidateRoboadvisors(),
   });
 
-  const isSavingRoboadvisorsList = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
-
   const handleBack = () => {
     navigate("/editors/roboadvisors");
   };
 
-  const handleSaveRoboadvisor = async () => {
+  const handleSaveRoboadvisor = () => {
+    const decimalManagementFee = convertPercentageStringToDecimal(formManagementFee);
+    const decimalCustodyFee = convertPercentageStringToDecimal(formCustodyFee);
+    const decimalTerFee = convertPercentageStringToDecimal(formTerFee);
+    const decimalTotalFee = convertPercentageStringToDecimal(formTotalFee);
+    const decimalTax = convertPercentageStringToDecimal(formTax);
+
+    const data: RoboadvisorPayload = {
+      name: formName,
+      bankAccountId: formBankAccountId as number,
+      managementFeePercentage: decimalManagementFee ?? 0,
+      custodyFeePercentage: decimalCustodyFee ?? 0,
+      fundTerPercentage: decimalTerFee ?? 0,
+      totalFeePercentage: decimalTotalFee ?? 0,
+      managementFeeFrequency: formManagementFreq as RoboadvisorPayload["managementFeeFrequency"],
+      custodyFeeFrequency: formCustodyFreq as RoboadvisorPayload["custodyFeeFrequency"],
+      terPricedInNav: formTerPricedInNav,
+    };
+    data.taxPercentage = decimalTax ?? undefined;
+    if (formRiskLevel !== null) data.riskLevel = formRiskLevel;
+
     setIsSavingRoboadvisor(true);
-    try {
-      // Convert percentage values to decimals for API
-      const decimalManagementFee = convertPercentageStringToDecimal(formManagementFee);
-      const decimalCustodyFee = convertPercentageStringToDecimal(formCustodyFee);
-      const decimalTerFee = convertPercentageStringToDecimal(formTerFee);
-      const decimalTotalFee = convertPercentageStringToDecimal(formTotalFee);
-      const decimalTax = convertPercentageStringToDecimal(formTax);
-
-      const data: RoboadvisorPayload = {
-        name: formName,
-        bankAccountId: formBankAccountId as number,
-        managementFeePercentage: decimalManagementFee ?? 0,
-        custodyFeePercentage: decimalCustodyFee ?? 0,
-        fundTerPercentage: decimalTerFee ?? 0,
-        totalFeePercentage: decimalTotalFee ?? 0,
-        managementFeeFrequency: formManagementFreq as RoboadvisorPayload["managementFeeFrequency"],
-        custodyFeeFrequency: formCustodyFreq as RoboadvisorPayload["custodyFeeFrequency"],
-        terPricedInNav: formTerPricedInNav,
-      };
-      data.taxPercentage = decimalTax ?? undefined;
-      if (formRiskLevel !== null) data.riskLevel = formRiskLevel;
-
-    try {
-      if (editingRoboadvisor) {
-        updateMutation.mutate({ id: editingRoboadvisor.id, data }, { onSettled: () => setIsSavingRoboadvisor(false) });
-      } else {
-        createMutation.mutate(data, { onSettled: () => setIsSavingRoboadvisor(false) });
-      }
-      setShowRoboadvisorModal(false);
-      return;
-    } catch (err) {
-      console.error(err);
-    }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSavingRoboadvisor(false);
+    if (editingRoboadvisor) {
+      updateMutation.mutate({ id: editingRoboadvisor.id, data }, {
+        onSuccess: () => setShowRoboadvisorModal(false),
+        onSettled: () => setIsSavingRoboadvisor(false),
+      });
+    } else {
+      createMutation.mutate(data, {
+        onSuccess: () => setShowRoboadvisorModal(false),
+        onSettled: () => setIsSavingRoboadvisor(false),
+      });
     }
   };
 
@@ -149,7 +154,7 @@ export const RoboadvisorsEditor: React.FC = () => {
       <Routes>
         <Route
           index
-          element={<RoboadvisorsList roboadvisors={roboadvisors} bankAccounts={bankAccounts} loading={loading} error={roboError ? (roboError instanceof Error ? roboError.message : String(roboError)) : null} onCreate={handleCreate} isSavingList={isSavingRoboadvisorsList} />}
+          element={<RoboadvisorsList roboadvisors={roboadvisors} bankAccounts={bankAccounts} loading={loading} error={roboError ? (roboError instanceof Error ? roboError.message : String(roboError)) : null} onCreate={handleCreate} />}
         />
         <Route
           path=":roboadvisorId/:tab"
@@ -357,6 +362,12 @@ export const RoboadvisorsEditor: React.FC = () => {
           </div>
         </div>
       )}
+      <DeleteConfirmModal
+        open={pendingDeleteId !== null}
+        isDeleting={isDeletingRoboadvisor}
+        onConfirm={confirmDeleteRoboadvisor}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </>
   );
 };

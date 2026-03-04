@@ -18,6 +18,7 @@ export const getSettings = (): AppSettings => {
   return {
     jwt: "",
     theme: "system",
+    defaultCurrency: "",
   };
 };
 

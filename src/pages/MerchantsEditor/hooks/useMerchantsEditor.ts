@@ -77,7 +77,6 @@ export function useMerchantsEditor() {
   };
 
   const handleDeleteMerchant = (id: number) => {
-    if (!confirm("Delete this merchant and all its receipts?")) return;
     deleteMerchantMutation.mutate(id, {
       onSuccess: () => {
         if (selectedMerchant?.id === id) setSelectedMerchant(null);
@@ -141,7 +140,6 @@ export function useMerchantsEditor() {
   };
 
   const handleDeleteReceipt = (id: number) => {
-    if (!confirm("Delete this receipt?")) return;
     deleteReceiptMutation.mutate(id);
   };
 

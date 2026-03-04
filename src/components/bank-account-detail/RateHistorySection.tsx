@@ -4,7 +4,6 @@ import { formatDecimalAsPercentageDisplay } from "../../utils/percentage-utils";
 import { formatDate } from "../../utils/date-utils";
 import type { RateHistorySectionProps } from "../../interfaces/bank-account-detail/rate-history-section-props-interface";
 import { HistoryCard } from "./HistoryCard";
-import SavingBadge from "../common/SavingBadge";
 
 export const RateHistorySection: React.FC<RateHistorySectionProps> = ({
   interestRates,
@@ -14,13 +13,12 @@ export const RateHistorySection: React.FC<RateHistorySectionProps> = ({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
-  isSavingList = false,
+  deletingIds = new Set(),
 }) => (
   <div>
     <div className="flex justify-between items-center mb-4">
       <div className="flex items-center gap-2">
       <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Interest Rate History</h4>
-      {isSavingList && <SavingBadge />}
       </div>
       <button
         onClick={onAdd}
@@ -40,13 +38,15 @@ export const RateHistorySection: React.FC<RateHistorySectionProps> = ({
                   <>
                     <button
                       onClick={() => onEdit(rate)}
-                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                      disabled={deletingIds.has(rate.id)}
+                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => onDelete(rate.id)}
-                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                      disabled={deletingIds.has(rate.id)}
+                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Trash2 size={16} />
                     </button>

@@ -1,6 +1,6 @@
-const configuredDefaultCurrencyCode = import.meta.env.VITE_DEFAULT_CURRENCY_CODE
-  ?.trim()
-  .toUpperCase();
+import { getSettings } from "../services/httpClient";
 
-export const DEFAULT_CURRENCY_CODE = configuredDefaultCurrencyCode || "USD";
+export function getDefaultCurrencyCode(): string {
+  return getSettings().defaultCurrency || "";
+}
 

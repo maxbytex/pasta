@@ -21,7 +21,7 @@ import { LiquidFlowSankeyCard } from "../components/dashboard/LiquidFlowSankeyCa
 import { useDashboardDataOptimized } from "../hooks/useDashboardDataOptimized";
 import { formatCurrencyWithAlignment } from "../utils/currency-utils";
 import { useInvalidateQueries } from "../hooks/useFinanceData";
-import { DEFAULT_CURRENCY_CODE } from "../constants/currency-constants";
+import { getDefaultCurrencyCode } from "../constants/currency-constants";
 
 const DashboardPage: React.FC = () => {
   const { invalidateDashboardData } = useInvalidateQueries();
@@ -48,7 +48,7 @@ const DashboardPage: React.FC = () => {
     }
   }, [charts]);
 
-  const format = (v: number | null) => (v === null ? "N/A" : formatCurrencyWithAlignment(v, kpis?.currencyCode || DEFAULT_CURRENCY_CODE));
+  const format = (v: number | null) => (v === null ? "N/A" : formatCurrencyWithAlignment(v, kpis?.currencyCode || getDefaultCurrencyCode()));
 
   const getBillColor = (c: string, index: number) => {
     void index;

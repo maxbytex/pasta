@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { clsx } from "clsx";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Wallet, Building2, Banknote, TrendingUp, PieChart, ChevronUp, X, Settings, Store, RefreshCw, FileText, Loader2 } from "lucide-react";
-import { useIsMutating } from "@tanstack/react-query";
+import { Wallet, Building2, Banknote, TrendingUp, PieChart, ChevronUp, X, Settings, Store, RefreshCw, FileText } from "lucide-react";
 
 const slideUpAnimation = `
   @keyframes slideUp {
@@ -30,10 +29,7 @@ const tabs = [
 export const EditorsPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  const activeMutations = useIsMutating();
-  const isSavingChanges = activeMutations > 0;
-
-  const getCurrentTab = () => {
+  const getCurrentTab= () => {
     const pathParts = location.pathname.split('/');
     const currentTabId = pathParts.find(part => tabs.some(tab => tab.id === part));
     return tabs.find(tab => tab.id === currentTabId) || null;
@@ -94,12 +90,6 @@ export const EditorsPage: React.FC = () => {
                     </span>
                     <span className="flex items-center gap-2">
                       {tab.label}
-                      {isSavingChanges && isActive && (
-                        <span className="rounded-full border px-2 py-0.5 text-[10px] font-medium flex items-center gap-1 text-amber-700 dark:text-amber-300 bg-amber-50/95 dark:bg-amber-900/60 border-amber-200 dark:border-amber-800">
-                          <Loader2 size={10} className="animate-spin" />
-                          Saving
-                        </span>
-                      )}
                     </span>
                   </>
                 )}
@@ -127,13 +117,7 @@ export const EditorsPage: React.FC = () => {
           <span className="text-sm font-medium text-gray-900 dark:text-white">
             {currentTab?.label || 'Select Editor'}
           </span>
-          {isSavingChanges && currentTab && (
-            <span className="rounded-full border px-2 py-0.5 text-[10px] font-medium flex items-center gap-1 text-amber-700 dark:text-amber-300 bg-amber-50/95 dark:bg-amber-900/60 border-amber-200 dark:border-amber-800">
-              <Loader2 size={10} className="animate-spin" />
-              Saving
-            </span>
-          )}
-          <ChevronUp 
+          <ChevronUp
             size={14} 
             className={clsx(
               "text-gray-400 dark:text-gray-500 transition-transform duration-200",
@@ -195,12 +179,6 @@ export const EditorsPage: React.FC = () => {
                         </span>
                         <span className="flex items-center gap-2">
                           {tab.label}
-                          {isSavingChanges && isActive && (
-                            <span className="rounded-full border px-2 py-0.5 text-[10px] font-medium flex items-center gap-1 text-amber-700 dark:text-amber-300 bg-amber-50/95 dark:bg-amber-900/60 border-amber-200 dark:border-amber-800">
-                              <Loader2 size={10} className="animate-spin" />
-                              Saving
-                            </span>
-                          )}
                         </span>
                       </>
                     )}

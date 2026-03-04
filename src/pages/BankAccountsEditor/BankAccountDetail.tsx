@@ -22,6 +22,7 @@ import { BalanceHistorySection } from "../../components/bank-account-detail/Bala
 import { RateHistorySection } from "../../components/bank-account-detail/RateHistorySection";
 import { BalanceModal } from "../../components/bank-account-detail/BalanceModal";
 import { RateModal } from "../../components/bank-account-detail/RateModal";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
 import { getBankAccountSummary } from "../../utils/bank-account-detail-utils";
 import { 
   useBankAccounts, 
@@ -30,6 +31,7 @@ import {
   useInvalidateQueries 
 } from "../../hooks/useFinanceData";
 import { useMutation } from "@tanstack/react-query";
+import { getDefaultCurrencyCode } from "../../constants/currency-constants";
 
 export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
   onEdit,
@@ -66,10 +68,15 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
   const [showBalanceModal, setShowBalanceModal] = useState(false);
   const [editingBalance, setEditingBalance] = useState<BankAccountBalance | null>(null);
   const [isSavingBalance, setIsSavingBalance] = useState(false);
+  const [deletingBalanceIds, setDeletingBalanceIds] = useState<Set<number>>(new Set());
 
   const [showRateModal, setShowRateModal] = useState(false);
   const [editingRate, setEditingRate] = useState<BankAccountInterestRate | null>(null);
   const [isSavingRate, setIsSavingRate] = useState(false);
+  const [deletingRateIds, setDeletingRateIds] = useState<Set<number>>(new Set());
+
+  const [pendingDeleteBalanceId, setPendingDeleteBalanceId] = useState<number | null>(null);
+  const [pendingDeleteRateId, setPendingDeleteRateId] = useState<number | null>(null);
 
   const [formBalanceAmount, setFormBalanceAmount] = useState("");
   const [formBalanceCurrency, setFormBalanceCurrency] = useState("EUR");
@@ -110,16 +117,26 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
     if (!account) return;
     setIsSavingBalance(true);
     if (editingBalance) {
-      updateBalanceMutation.mutate({ id: editingBalance.id, amount: formBalanceAmount, currency: formBalanceCurrency }, { onSettled: () => setIsSavingBalance(false) });
+      updateBalanceMutation.mutate(
+        { id: editingBalance.id, amount: formBalanceAmount, currency: formBalanceCurrency },
+        {
+          onSuccess: () => setShowBalanceModal(false),
+          onSettled: () => setIsSavingBalance(false),
+        },
+      );
     } else {
-      createBalanceMutation.mutate({ accountId: account.id, amount: formBalanceAmount, currency: formBalanceCurrency }, { onSettled: () => setIsSavingBalance(false) });
+      createBalanceMutation.mutate(
+        { accountId: account.id, amount: formBalanceAmount, currency: formBalanceCurrency },
+        {
+          onSuccess: () => setShowBalanceModal(false),
+          onSettled: () => setIsSavingBalance(false),
+        },
+      );
     }
-    setShowBalanceModal(false);
   };
 
   const handleDeleteBalance = (id: number) => {
-    if (!confirm("Delete this balance record?")) return;
-    deleteBalanceMutation.mutate(id);
+    setPendingDeleteBalanceId(id);
   };
 
   const createRateMutation = useMutation<BankAccountInterestRate, unknown, { accountId: number; rate: number; startDate: string; endDate?: string }>({
@@ -168,11 +185,22 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
     setIsSavingRate(true);
 
     if (editingRate) {
-      updateRateMutation.mutate({ id: editingRate.id, rate: decimalRate, startDate: formRateStartDate, endDate: formRateEndDate || undefined }, { onSettled: () => setIsSavingRate(false) });
+      updateRateMutation.mutate(
+        { id: editingRate.id, rate: decimalRate, startDate: formRateStartDate, endDate: formRateEndDate || undefined },
+        {
+          onSuccess: () => setShowRateModal(false),
+          onSettled: () => setIsSavingRate(false),
+        },
+      );
     } else {
-      createRateMutation.mutate({ accountId: account.id, rate: decimalRate, startDate: formRateStartDate, endDate: formRateEndDate || undefined }, { onSettled: () => setIsSavingRate(false) });
+      createRateMutation.mutate(
+        { accountId: account.id, rate: decimalRate, startDate: formRateStartDate, endDate: formRateEndDate || undefined },
+        {
+          onSuccess: () => setShowRateModal(false),
+          onSettled: () => setIsSavingRate(false),
+        },
+      );
     }
-    setShowRateModal(false);
   };
 
   const handleRateValueChange = (value: React.SetStateAction<string>) => {
@@ -181,8 +209,7 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
   };
 
   const handleDeleteRate = (id: number) => {
-    if (!confirm("Delete this interest rate?")) return;
-    deleteRateMutation.mutate(id);
+    setPendingDeleteRateId(id);
   };
 
   if (loadingAccounts || !account) {
@@ -192,8 +219,6 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
   const activeTab = tab || "balances";
   const loadingDetails = loadingBalances || loadingRates;
   const { currentBalance, currencyCode, latestRate, monthlyProfit, annualProfit } = getBankAccountSummary(account, balances);
-  const isSavingBalancesList = createBalanceMutation.isPending || updateBalanceMutation.isPending || deleteBalanceMutation.isPending;
-  const isSavingRatesList = createRateMutation.isPending || updateRateMutation.isPending || deleteRateMutation.isPending;
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col relative max-md:rounded-none max-md:border-0">
@@ -266,7 +291,7 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
                 onAdd={() => {
                   setEditingBalance(null);
                   setFormBalanceAmount("");
-                  setFormBalanceCurrency("EUR");
+                  setFormBalanceCurrency(getDefaultCurrencyCode());
                   setShowBalanceModal(true);
                 }}
                 onEdit={(balance) => {
@@ -279,7 +304,7 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
                 fetchNextPage={fetchNextBalances}
                 hasNextPage={hasNextBalances}
                 isFetchingNextPage={isFetchingNextBalances}
-                isSavingList={isSavingBalancesList}
+                deletingIds={deletingBalanceIds}
               />
             )
             : (
@@ -305,7 +330,7 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
                 fetchNextPage={fetchNextRates}
                 hasNextPage={hasNextRates}
                 isFetchingNextPage={isFetchingNextRates}
-                isSavingList={isSavingRatesList}
+                deletingIds={deletingRateIds}
               />
             )}
       </div>
@@ -338,6 +363,44 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
           setShowRateModal(false);
         }}
         onSave={handleSaveRate}
+      />
+      <DeleteConfirmModal
+        open={pendingDeleteBalanceId !== null}
+        isDeleting={deleteBalanceMutation.isPending}
+        onConfirm={() => {
+          const id = pendingDeleteBalanceId!;
+          setDeletingBalanceIds((prev) => new Set(prev).add(id));
+          deleteBalanceMutation.mutate(id, {
+            onSettled: () => {
+              setPendingDeleteBalanceId(null);
+              setDeletingBalanceIds((prev) => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+              });
+            },
+          });
+        }}
+        onCancel={() => setPendingDeleteBalanceId(null)}
+      />
+      <DeleteConfirmModal
+        open={pendingDeleteRateId !== null}
+        isDeleting={deleteRateMutation.isPending}
+        onConfirm={() => {
+          const id = pendingDeleteRateId!;
+          setDeletingRateIds((prev) => new Set(prev).add(id));
+          deleteRateMutation.mutate(id, {
+            onSettled: () => {
+              setPendingDeleteRateId(null);
+              setDeletingRateIds((prev) => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+              });
+            },
+          });
+        }}
+        onCancel={() => setPendingDeleteRateId(null)}
       />
     </div>
   );

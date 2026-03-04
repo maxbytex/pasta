@@ -4,6 +4,7 @@ import { useCash, useInfiniteCashBalances, useInvalidateQueries } from "../../..
 import { createCash, updateCash, deleteCash, createCashBalance, updateCashBalance, deleteCashBalance } from "../../../services/api/cash";
 import type { CashBalance } from "../../../interfaces/cash-balance-interface";
 import type { CashInterface } from "../../../interfaces/cash-interface";
+import { getDefaultCurrencyCode } from "../../../constants/currency-constants";
 
 export function useCashEditor() {
   const { data: cashData = [], isLoading: loading, error } = useCash();
@@ -37,11 +38,13 @@ export function useCashEditor() {
   const [isSavingBalance, setIsSavingBalance] = useState(false);
   const [deletingCashIds, setDeletingCashIds] = useState<Set<number>>(new Set());
   const [deletingBalanceIds, setDeletingBalanceIds] = useState<Set<number>>(new Set());
+  const [pendingDeleteCashId, setPendingDeleteCashId] = useState<number | null>(null);
+  const [pendingDeleteBalanceId, setPendingDeleteBalanceId] = useState<number | null>(null);
 
   const [formName, setFormName] = useState("");
 
   const [formAmount, setFormAmount] = useState("");
-  const [formCurrency, setFormCurrency] = useState("EUR");
+  const [formCurrency, setFormCurrency] = useState(getDefaultCurrencyCode());
 
   const { 
     data: infiniteBalances, 
@@ -74,14 +77,19 @@ export function useCashEditor() {
   };
 
   const handleDeleteCash = (id: number) => {
-    if (!confirm("Delete this cash location and all its balances?")) return;
+    setPendingDeleteCashId(id);
+  };
 
+  const confirmDeleteCash = () => {
+    if (pendingDeleteCashId === null) return;
+    const id = pendingDeleteCashId;
     setDeletingCashIds((prev) => new Set(prev).add(id));
     deleteCashMutation.mutate(id, {
       onSuccess: () => {
         if (selectedCash?.id === id) setSelectedCash(null);
       },
       onSettled: () => {
+        setPendingDeleteCashId(null);
         setDeletingCashIds((prev) => {
           const next = new Set(prev);
           next.delete(id);
@@ -115,7 +123,7 @@ export function useCashEditor() {
   const handleCreateBalance = () => {
     setEditingBalance(null);
     setFormAmount("");
-    const lastCurrency = localStorage.getItem("last_used_currency") || "EUR";
+    const lastCurrency = localStorage.getItem("last_used_currency") || getDefaultCurrencyCode();
     setFormCurrency(lastCurrency);
     setShowBalanceModal(true);
   };
@@ -168,11 +176,16 @@ export function useCashEditor() {
   };
 
   const handleDeleteBalance = (id: number) => {
-    if (!confirm("Delete this balance?")) return;
+    setPendingDeleteBalanceId(id);
+  };
 
+  const confirmDeleteBalance = () => {
+    if (pendingDeleteBalanceId === null) return;
+    const id = pendingDeleteBalanceId;
     setDeletingBalanceIds((prev) => new Set(prev).add(id));
     deleteBalanceMutation.mutate(id, {
       onSettled: () => {
+        setPendingDeleteBalanceId(null);
         setDeletingBalanceIds((prev) => {
           const next = new Set(prev);
           next.delete(id);
@@ -212,6 +225,9 @@ export function useCashEditor() {
     handleEditCash,
     handleSaveCash,
     handleDeleteCash,
+    pendingDeleteCashId,
+    setPendingDeleteCashId,
+    confirmDeleteCash,
     showBalanceModal,
     setShowBalanceModal,
     editingBalance,
@@ -221,6 +237,9 @@ export function useCashEditor() {
     handleEditBalance,
     handleSaveBalance,
     handleDeleteBalance,
+    pendingDeleteBalanceId,
+    setPendingDeleteBalanceId,
+    confirmDeleteBalance,
     balances,
     loadingDetails,
     fetchNextPage,

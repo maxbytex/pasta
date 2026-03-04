@@ -11,6 +11,7 @@ import { formatDate } from "../../utils/date-utils";
 import useCryptoExchangesEditor from "./hooks/useCryptoExchangesEditor";
 import ExchangeCard from "./components/ExchangeCard";
 import AssetModal from "./components/AssetModal";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
 
 export const CryptoExchangesEditor: React.FC = () => {
   const {
@@ -27,6 +28,9 @@ export const CryptoExchangesEditor: React.FC = () => {
     handleEditExchange,
     handleSaveExchange,
     handleDeleteExchange,
+    pendingDeleteExchangeId,
+    setPendingDeleteExchangeId,
+    confirmDeleteExchange,
     showAssetModal,
     setShowAssetModal,
     editingAsset,
@@ -35,6 +39,9 @@ export const CryptoExchangesEditor: React.FC = () => {
     handleEditAsset,
     handleSaveAsset,
     handleDeleteAsset,
+    pendingDeleteAssetId,
+    setPendingDeleteAssetId,
+    confirmDeleteAsset,
     balances,
     loadingDetails,
     availableSymbols,
@@ -122,7 +129,7 @@ export const CryptoExchangesEditor: React.FC = () => {
               defaultValue={formName}
               secondaryLabel="TAX (%)"
               secondaryValue={formTax}
-              secondaryPlaceholder="26"
+              secondaryPlaceholder="19"
               onSecondaryChange={setFormTax}
               isSaving={isSavingExchange}
             />
@@ -225,8 +232,8 @@ export const CryptoExchangesEditor: React.FC = () => {
             {balances.map((balance) => (
               <GradientHistoryCard
                 key={balance.id}
-                borderClassName={deletingAssetIds.has(balance.id) ? "border-red-400 dark:border-red-500" : "border-emerald-500 dark:border-emerald-400"}
-                gradient={deletingAssetIds.has(balance.id) ? "linear-gradient(135deg, rgb(248, 113, 113), rgb(239, 68, 68))" : "linear-gradient(135deg, rgb(16, 185, 129), rgb(5, 150, 105))"}
+                borderClassName="border-emerald-500 dark:border-emerald-400"
+                gradient="linear-gradient(135deg, rgb(16, 185, 129), rgb(5, 150, 105))"
                 actions={
                   <>
                     <button
@@ -284,7 +291,7 @@ export const CryptoExchangesEditor: React.FC = () => {
           defaultValue={formName}
           secondaryLabel="Capital Gains Tax (%)"
           secondaryValue={formTax}
-          secondaryPlaceholder="26"
+          secondaryPlaceholder="19"
           onSecondaryChange={setFormTax}
           isSaving={isSavingExchange}
         />
@@ -306,6 +313,18 @@ export const CryptoExchangesEditor: React.FC = () => {
         setFormInvestedCurrency={setFormInvestedCurrency}
         availableSymbols={availableSymbols}
         isSaving={isSavingAsset}
+      />
+      <DeleteConfirmModal
+        open={pendingDeleteExchangeId !== null}
+        isDeleting={deletingExchangeIds.size > 0}
+        onConfirm={confirmDeleteExchange}
+        onCancel={() => setPendingDeleteExchangeId(null)}
+      />
+      <DeleteConfirmModal
+        open={pendingDeleteAssetId !== null}
+        isDeleting={deletingAssetIds.size > 0}
+        onConfirm={confirmDeleteAsset}
+        onCancel={() => setPendingDeleteAssetId(null)}
       />
     </div>
   );

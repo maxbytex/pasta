@@ -8,5 +8,5 @@ export interface RateHistorySectionProps {
   fetchNextPage: () => void;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
-  isSavingList?: boolean;
+  deletingIds?: Set<number>;
 }

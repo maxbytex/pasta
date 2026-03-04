@@ -8,6 +8,9 @@ import { formatCurrencyWithAlignment } from "../../utils/currency-utils";
 import ReceiptItemModal from "./components/ReceiptItemModal";
 import type { Receipt } from "../../interfaces/receipt-interface";
 import type { ReceiptItem } from "../../interfaces/receipt-item-interface";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
+import { getDefaultCurrencyCode } from "../../constants/currency-constants";
+import { CurrencySelect } from "../../components/common/CurrencySelect";
 
 interface ReceiptFormProps {
   initialData: {
@@ -54,6 +57,7 @@ const ReceiptForm: React.FC<ReceiptFormProps> = ({ initialData, merchantId, rece
   });
 
   const [showItemModal, setShowItemModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [itemName, setItemName] = useState("");
   const [itemUnitPrice, setItemUnitPrice] = useState("");
@@ -109,7 +113,7 @@ const ReceiptForm: React.FC<ReceiptFormProps> = ({ initialData, merchantId, rece
         <div className="flex items-center gap-2">
           {!isNew && (
             <button
-              onClick={() => { if(confirm("Delete receipt?")) deleteMutation.mutate(); }}
+              onClick={() => setShowDeleteConfirm(true)}
               className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl font-semibold text-sm leading-none transition-all active:translate-y-[1px] active:scale-[0.995] cursor-pointer bg-[#ff4d43] text-white hover:opacity-90"
             >
               <Trash2 size={16} /> Delete
@@ -149,13 +153,9 @@ const ReceiptForm: React.FC<ReceiptFormProps> = ({ initialData, merchantId, rece
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Currency</label>
-            <input
-              type="text"
+            <CurrencySelect
               value={currency}
-              onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-              maxLength={3}
-              placeholder="EUR"
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+              onChange={setCurrency}
             />
           </div>
         </div>
@@ -217,6 +217,14 @@ const ReceiptForm: React.FC<ReceiptFormProps> = ({ initialData, merchantId, rece
         onQuantityChange={setItemQuantity}
         onSave={handleSaveItem}
       />
+      <DeleteConfirmModal
+        open={showDeleteConfirm}
+        isDeleting={deleteMutation.isPending}
+        onConfirm={() => {
+          deleteMutation.mutate();
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 };
@@ -246,7 +254,7 @@ export const ReceiptDetailEditor: React.FC = () => {
 
   const initialData = {
     date: receipt && !isNew ? (receipt.receiptDate || receipt.date).split('T')[0] : new Date().toISOString().split('T')[0],
-    currency: receipt && !isNew ? receipt.currencyCode : "EUR",
+    currency: receipt && !isNew ? receipt.currencyCode : getDefaultCurrencyCode(),
     items: receipt && !isNew ? receipt.items || [] : [],
   };
 

@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useInfiniteBills, useInvalidateQueries, useBillCategories } from "../../../hooks/useFinanceData";
 import { saveBill, updateBill, deleteBill } from "../../../services/api/bills";
 import type { Bill } from "../../../interfaces/bill-interface";
+import { getDefaultCurrencyCode } from "../../../constants/currency-constants";
 
 interface BillInput {
   date: string;
@@ -44,11 +45,13 @@ export function useBillsEditor() {
   const [showModal, setShowModal] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [deletingBillIds, setDeletingBillIds] = useState<Set<number>>(new Set());
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
   const [formCategory, setFormCategory] = useState("");
   const [formAmount, setFormAmount] = useState("");
-  const [formCurrency, setFormCurrency] = useState("EUR");
+  const [formCurrency, setFormCurrency] = useState(getDefaultCurrencyCode());
   const [formSenderEmail, setFormSenderEmail] = useState("");
 
   const handleCreate = () => {
@@ -56,7 +59,7 @@ export function useBillsEditor() {
     setFormDate(new Date().toISOString().split('T')[0]);
     setFormCategory(categories.length > 0 ? categories[0].name : "");
     setFormAmount("");
-    setFormCurrency("EUR");
+    setFormCurrency(getDefaultCurrencyCode());
     setFormSenderEmail("");
     setShowModal(true);
   };
@@ -72,9 +75,26 @@ export function useBillsEditor() {
   };
 
   const handleDelete = (id: number) => {
-    if (!confirm("Delete this bill?")) return;
-    deleteMutation.mutate(id);
+    setPendingDeleteId(id);
   };
+
+  const confirmDelete = () => {
+    if (pendingDeleteId === null) return;
+    const id = pendingDeleteId;
+    setDeletingBillIds((prev) => new Set(prev).add(id));
+    deleteMutation.mutate(id, {
+      onSettled: () => {
+        setPendingDeleteId(null);
+        setDeletingBillIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      },
+    });
+  };
+
+  const cancelDelete = () => setPendingDeleteId(null);
 
   const handleSave = async () => {
     if (!formDate || !formCategory || !formAmount || !formCurrency) return;
@@ -89,11 +109,16 @@ export function useBillsEditor() {
     };
 
     if (editingBill) {
-      updateMutation.mutate({ id: editingBill.id, data }, { onSettled: () => setIsSaving(false) });
+      updateMutation.mutate({ id: editingBill.id, data }, {
+        onSuccess: () => setShowModal(false),
+        onSettled: () => setIsSaving(false),
+      });
     } else {
-      saveMutation.mutate(data, { onSettled: () => setIsSaving(false) });
+      saveMutation.mutate(data, {
+        onSuccess: () => setShowModal(false),
+        onSettled: () => setIsSaving(false),
+      });
     }
-    setShowModal(false);
   };
 
   return {
@@ -108,10 +133,14 @@ export function useBillsEditor() {
     setShowModal,
     editingBill,
     isSaving,
+    deletingBillIds,
     handleCreate,
     handleEdit,
     handleDelete,
     handleSave,
+    pendingDeleteId,
+    confirmDelete,
+    cancelDelete,
     formDate,
     setFormDate,
     formCategory,

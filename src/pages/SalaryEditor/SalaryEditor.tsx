@@ -8,6 +8,9 @@ import { Skeleton } from "../../components/Skeleton";
 import { GradientHistoryCard } from "../../components/common/GradientHistoryCard";
 import { formatCurrencyWithAlignment } from "../../utils/currency-utils";
 import { formatDate } from "../../utils/date-utils";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
+import { getDefaultCurrencyCode } from "../../constants/currency-constants";
+import { CurrencySelect } from "../../components/common/CurrencySelect";
 
 import type { SalaryChange } from "../../interfaces/pages/salary-change-interface";
 
@@ -43,10 +46,12 @@ export const SalaryEditor: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingSalary, setEditingSalary] = useState<SalaryChange | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [deletingSalaryIds, setDeletingSalaryIds] = useState<Set<number>>(new Set());
+  const [pendingDeleteSalaryId, setPendingDeleteSalaryId] = useState<number | null>(null);
 
   const [formRecurrence, setFormRecurrence] = useState("monthly");
   const [formAmount, setFormAmount] = useState("");
-  const [formCurrency, setFormCurrency] = useState("USD");
+  const [formCurrency, setFormCurrency] = useState(getDefaultCurrencyCode());
   const [formDate, setFormDate] = useState("");
 
   const [availableCurrencies] = useState<string[]>(["USD", "EUR", "GBP"]);
@@ -60,7 +65,7 @@ export const SalaryEditor: React.FC = () => {
     setEditingSalary(null);
     setFormRecurrence("monthly");
     setFormAmount("");
-    setFormCurrency("USD");
+    setFormCurrency(getDefaultCurrencyCode());
     setFormDate("");
     setShowModal(true);
   };
@@ -75,19 +80,45 @@ export const SalaryEditor: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    if (!confirm("Delete this salary change?")) return;
-    deleteMutation.mutate(id);
+    setPendingDeleteSalaryId(id);
+  };
+
+  const confirmDeleteSalary = () => {
+    if (pendingDeleteSalaryId === null) return;
+    const id = pendingDeleteSalaryId;
+    setDeletingSalaryIds((prev) => new Set(prev).add(id));
+    deleteMutation.mutate(id, {
+      onSettled: () => {
+        setPendingDeleteSalaryId(null);
+        setDeletingSalaryIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      },
+    });
   };
 
   const handleSave = async () => {
     if (!isSalaryFormComplete) return;
     setIsSaving(true);
     if (editingSalary) {
-      updateMutation.mutate({ id: editingSalary.id, recurrence: formRecurrence, amount: formAmount, currency: formCurrency, date: formDate }, { onSettled: () => setIsSaving(false) });
+      updateMutation.mutate(
+        { id: editingSalary.id, recurrence: formRecurrence, amount: formAmount, currency: formCurrency, date: formDate },
+        {
+          onSuccess: () => setShowModal(false),
+          onSettled: () => setIsSaving(false),
+        },
+      );
     } else {
-      createMutation.mutate({ recurrence: formRecurrence, amount: formAmount, currency: formCurrency, date: formDate }, { onSettled: () => setIsSaving(false) });
+      createMutation.mutate(
+        { recurrence: formRecurrence, amount: formAmount, currency: formCurrency, date: formDate },
+        {
+          onSuccess: () => setShowModal(false),
+          onSettled: () => setIsSaving(false),
+        },
+      );
     }
-    setShowModal(false);
   };
 
   // Calculate stats
@@ -159,18 +190,18 @@ export const SalaryEditor: React.FC = () => {
         <div className="flex flex-wrap justify-start gap-2">
           {loading ? (
             <>
-              <Skeleton className="w-[calc(50%-0.5rem)] sm:w-28 h-[60px] rounded-lg" />
-              <Skeleton className="w-[calc(50%-0.5rem)] sm:w-28 h-[60px] rounded-lg" />
+              <Skeleton className="w-[calc(50%-0.5rem)] sm:w-28 h-[52px] rounded-lg" />
+              <Skeleton className="w-[calc(50%-0.5rem)] sm:w-28 h-[52px] rounded-lg" />
             </>
           ) : (
             <>
-              <div className="w-[calc(50%-0.5rem)] sm:w-28 rounded-lg p-3 flex flex-col items-center text-center" style={{ background: "linear-gradient(to bottom, rgb(52, 211, 153), rgb(16, 185, 129))" }}>
+              <div className="w-[calc(50%-0.5rem)] sm:w-28 rounded-lg p-2 flex flex-col items-center text-center" style={{ background: "linear-gradient(to bottom, rgb(52, 211, 153), rgb(16, 185, 129))" }}>
                 <span className="text-[10px] font-medium text-white uppercase">Monthly</span>
                 <span className="text-sm font-bold text-white">
                   {formatCurrencyWithAlignment(stats.monthlyAmount, stats.latestCurrency)}
                 </span>
               </div>
-              <div className="w-[calc(50%-0.5rem)] sm:w-28 rounded-lg p-3 flex flex-col items-center text-center" style={{ background: "linear-gradient(to bottom, rgb(96, 165, 250), rgb(59, 130, 246))" }}>
+              <div className="w-[calc(50%-0.5rem)] sm:w-28 rounded-lg p-2 flex flex-col items-center text-center" style={{ background: "linear-gradient(to bottom, rgb(96, 165, 250), rgb(59, 130, 246))" }}>
                 <span className="text-[10px] font-medium text-white uppercase">Yearly</span>
                 <span className="text-sm font-bold text-white">
                   {formatCurrencyWithAlignment(stats.yearlyAmount, stats.latestCurrency)}
@@ -209,13 +240,15 @@ export const SalaryEditor: React.FC = () => {
                   <>
                     <button
                       onClick={() => handleEdit(salary)}
-                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                      disabled={deletingSalaryIds.has(salary.id)}
+                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => handleDelete(salary.id)}
-                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                      disabled={deletingSalaryIds.has(salary.id)}
+                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -307,21 +340,12 @@ export const SalaryEditor: React.FC = () => {
                 <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
                   Currency <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  list="currencies-salary"
+                <CurrencySelect
                   value={formCurrency}
-                  onChange={(e) => setFormCurrency(e.target.value.toUpperCase())}
+                  onChange={setFormCurrency}
                   disabled={isSaving}
-                  placeholder="USD"
-                  maxLength={3}
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  availableCurrencies={availableCurrencies}
                 />
-                <datalist id="currencies-salary">
-                  {availableCurrencies.map((c) => (
-                    <option key={c} value={c} />
-                  ))}
-                </datalist>
               </div>
               <div className="flex gap-3 justify-end mt-8">
                 {!isSaving && (
@@ -337,13 +361,19 @@ export const SalaryEditor: React.FC = () => {
                   disabled={isSaving || !isSalaryFormComplete}
                   className="px-5 py-3 sm:py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-300 dark:disabled:bg-emerald-700 disabled:opacity-70 disabled:cursor-not-allowed disabled:text-white text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95 disabled:shadow-none cursor-pointer"
                 >
-                  {isSaving ? "Saving" : "Save"}
+                  {isSaving ? "Saving..." : "Save"}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
+      <DeleteConfirmModal
+        open={pendingDeleteSalaryId !== null}
+        isDeleting={deletingSalaryIds.size > 0}
+        onConfirm={confirmDeleteSalary}
+        onCancel={() => setPendingDeleteSalaryId(null)}
+      />
     </div>
   );
 };

@@ -14,6 +14,7 @@ interface BillsHistoryTabProps {
   onCreate: () => void;
   onEdit: (bill: Bill) => void;
   onDelete: (id: number) => void;
+  deletingIds?: Set<number>;
 }
 
 export const BillsHistoryTab: React.FC<BillsHistoryTabProps> = ({
@@ -23,6 +24,7 @@ export const BillsHistoryTab: React.FC<BillsHistoryTabProps> = ({
   onCreate,
   onEdit,
   onDelete,
+  deletingIds = new Set(),
 }) => {
   const getCategoryColor = (categoryName: string) => {
     const cat = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
@@ -67,13 +69,15 @@ export const BillsHistoryTab: React.FC<BillsHistoryTabProps> = ({
                       <>
                         <button
                           onClick={() => onEdit(bill)}
-                          className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                          disabled={deletingIds.has(bill.id)}
+                          className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Edit2 size={16} />
                         </button>
                         <button
                           onClick={() => onDelete(bill.id)}
-                          className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                          disabled={deletingIds.has(bill.id)}
+                          className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Trash2 size={16} />
                         </button>

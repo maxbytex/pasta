@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useSubscriptions, useInvalidateQueries } from "../../../hooks/useFinanceData";
 import { createSubscription, updateSubscription, deleteSubscription } from "../../../services/api/subscriptions";
 import type { Subscription } from "../../../interfaces/subscription-interface";
+import { getDefaultCurrencyCode } from "../../../constants/currency-constants";
 
 interface SubscriptionInput {
   name: string;
@@ -38,12 +39,14 @@ export function useSubscriptionsEditor() {
   const [showModal, setShowModal] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [deletingSubscriptionIds, setDeletingSubscriptionIds] = useState<Set<number>>(new Set());
+  const [pendingDeleteSubscriptionId, setPendingDeleteSubscriptionId] = useState<number | null>(null);
 
   const [formName, setFormName] = useState("");
   const [formCategory, setFormCategory] = useState("");
   const [formRecurrence, setFormRecurrence] = useState("monthly");
   const [formAmount, setFormAmount] = useState("");
-  const [formCurrency, setFormCurrency] = useState("EUR");
+  const [formCurrency, setFormCurrency] = useState(getDefaultCurrencyCode());
   const [formEffectiveFrom, setFormEffectiveFrom] = useState(new Date().toISOString().split('T')[0]);
   const [formEffectiveUntil, setFormEffectiveUntil] = useState<string>("");
   const [formPlan, setFormPlan] = useState("");
@@ -56,8 +59,7 @@ export function useSubscriptionsEditor() {
     setFormCategory("");
     setFormRecurrence("monthly");
     setFormAmount("");
-    setFormCurrency("EUR");
-    setFormEffectiveFrom(new Date().toISOString().split('T')[0]);
+    setFormCurrency(getDefaultCurrencyCode());    setFormEffectiveFrom(new Date().toISOString().split('T')[0]);
     setFormEffectiveUntil("");
     setFormPlan("");
     setShowModal(true);
@@ -77,9 +79,26 @@ export function useSubscriptionsEditor() {
   };
 
   const handleDelete = (id: number) => {
-    if (!confirm("Delete this subscription?")) return;
-    deleteMutation.mutate(id);
+    setPendingDeleteSubscriptionId(id);
   };
+
+  const confirmDeleteSubscription = () => {
+    if (pendingDeleteSubscriptionId === null) return;
+    const id = pendingDeleteSubscriptionId;
+    setDeletingSubscriptionIds((prev) => new Set(prev).add(id));
+    deleteMutation.mutate(id, {
+      onSettled: () => {
+        setPendingDeleteSubscriptionId(null);
+        setDeletingSubscriptionIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      },
+    });
+  };
+
+  const cancelDeleteSubscription = () => setPendingDeleteSubscriptionId(null);
 
   const handleSave = async () => {
     if (!formName || !formCategory || !formAmount || !formCurrency || !formEffectiveFrom) return;
@@ -97,11 +116,16 @@ export function useSubscriptionsEditor() {
     };
 
     if (editingSubscription) {
-      updateMutation.mutate({ id: editingSubscription.id, data }, { onSettled: () => setIsSaving(false) });
+      updateMutation.mutate({ id: editingSubscription.id, data }, {
+        onSuccess: () => setShowModal(false),
+        onSettled: () => setIsSaving(false),
+      });
     } else {
-      createMutation.mutate(data, { onSettled: () => setIsSaving(false) });
+      createMutation.mutate(data, {
+        onSuccess: () => setShowModal(false),
+        onSettled: () => setIsSaving(false),
+      });
     }
-    setShowModal(false);
   };
 
   return {
@@ -112,10 +136,14 @@ export function useSubscriptionsEditor() {
     setShowModal,
     editingSubscription,
     isSaving,
+    deletingSubscriptionIds,
     handleCreate,
     handleEdit,
     handleDelete,
     handleSave,
+    pendingDeleteSubscriptionId,
+    confirmDeleteSubscription,
+    cancelDeleteSubscription,
     formName,
     setFormName,
     formCategory,

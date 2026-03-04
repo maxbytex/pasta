@@ -1,4 +1,5 @@
 import React from "react";
+import { CurrencySelect } from "../../../components/common/CurrencySelect";
 
 export const BalanceModal: React.FC<{
   show: boolean;
@@ -47,7 +48,11 @@ export const BalanceModal: React.FC<{
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Currency</label>
-              <input type="text" value={currency} onChange={(e) => onCurrencyChange(e.target.value)} placeholder="EUR" maxLength={3} className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-xl" />
+              <CurrencySelect
+                value={currency}
+                onChange={onCurrencyChange}
+                disabled={isSaving}
+              />
             </div>
           </div>
           <div className="flex gap-3 justify-end mt-8">

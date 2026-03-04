@@ -5,6 +5,8 @@ import { Skeleton } from "../../components/Skeleton";
 import { GradientHistoryCard } from "../../components/common/GradientHistoryCard";
 import { formatCurrencyWithAlignment } from "../../utils/currency-utils";
 import useSubscriptionsEditor from "./hooks/useSubscriptionsEditor";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
+import { CurrencySelect } from "../../components/common/CurrencySelect";
 
 export const SubscriptionsEditor: React.FC = () => {
   const {
@@ -15,10 +17,14 @@ export const SubscriptionsEditor: React.FC = () => {
     setShowModal,
     editingSubscription,
     isSaving,
+    deletingSubscriptionIds,
     handleCreate,
     handleEdit,
     handleDelete,
     handleSave,
+    pendingDeleteSubscriptionId,
+    confirmDeleteSubscription,
+    cancelDeleteSubscription,
     formName,
     setFormName,
     formCategory,
@@ -120,13 +126,15 @@ export const SubscriptionsEditor: React.FC = () => {
                   <>
                     <button
                       onClick={() => handleEdit(sub)}
-                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                      disabled={deletingSubscriptionIds.has(sub.id)}
+                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => handleDelete(sub.id)}
-                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                      disabled={deletingSubscriptionIds.has(sub.id)}
+                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -199,13 +207,9 @@ export const SubscriptionsEditor: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Currency <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
+                  <CurrencySelect
                     value={formCurrency}
-                    onChange={(e) => setFormCurrency(e.target.value.toUpperCase())}
-                    maxLength={3}
-                    placeholder="EUR"
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                    onChange={setFormCurrency}
                   />
                 </div>
               </div>
@@ -277,8 +281,12 @@ export const SubscriptionsEditor: React.FC = () => {
           </div>
         </div>
       )}
+      <DeleteConfirmModal
+        open={pendingDeleteSubscriptionId !== null}
+        isDeleting={deletingSubscriptionIds.size > 0}
+        onConfirm={confirmDeleteSubscription}
+        onCancel={cancelDeleteSubscription}
+      />
     </div>
   );
 };
-
-export default SubscriptionsEditor;

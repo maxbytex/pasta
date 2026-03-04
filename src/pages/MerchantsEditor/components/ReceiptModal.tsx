@@ -1,5 +1,6 @@
 import React from "react";
 import type { Receipt } from "../../../interfaces/receipt-interface";
+import { CurrencySelect } from "../../../components/common/CurrencySelect";
 
 interface ReceiptModalProps {
   show: boolean;
@@ -67,21 +68,12 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Currency <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              list="receipt-currencies"
+            <CurrencySelect
               value={currency}
-              onChange={(e) => onCurrencyChange(e.target.value.toUpperCase())}
+              onChange={onCurrencyChange}
               disabled={isSaving}
-              placeholder="EUR"
-              maxLength={3}
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              availableCurrencies={availableCurrencies}
             />
-            <datalist id="receipt-currencies">
-              {availableCurrencies.map((c) => (
-                <option key={c} value={c} />
-              ))}
-            </datalist>
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Description</label>
@@ -103,7 +95,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
               disabled={isSaving || !canSave}
               className="px-5 py-3 sm:py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-300 dark:disabled:bg-emerald-700 disabled:opacity-70 disabled:cursor-not-allowed disabled:text-white text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95 disabled:shadow-none cursor-pointer"
             >
-              {isSaving ? "Savings..." : "Save"}
+              {isSaving ? "Saving..." : "Save"}
             </button>
           </div>
         </div>

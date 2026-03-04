@@ -9,6 +9,7 @@ import { formatDate } from "../../utils/date-utils";
 import useCashEditor from "./hooks/useCashEditor";
 import CashCard from "./components/CashCard";
 import BalanceModal from "./components/BalanceModal";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
 
 
 export const CashEditor: React.FC = () => {
@@ -26,6 +27,9 @@ export const CashEditor: React.FC = () => {
     handleEditCash,
     handleSaveCash,
     handleDeleteCash,
+    pendingDeleteCashId,
+    setPendingDeleteCashId,
+    confirmDeleteCash,
     showBalanceModal,
     setShowBalanceModal,
     editingBalance,
@@ -34,6 +38,9 @@ export const CashEditor: React.FC = () => {
     handleEditBalance,
     handleSaveBalance,
     handleDeleteBalance,
+    pendingDeleteBalanceId,
+    setPendingDeleteBalanceId,
+    confirmDeleteBalance,
     balances,
     loadingDetails,
     availableCurrencies,
@@ -203,8 +210,8 @@ export const CashEditor: React.FC = () => {
             {balances.map((balance) => (
               <GradientHistoryCard
                 key={balance.id}
-                borderClassName={deletingBalanceIds.has(balance.id) ? "border-red-400 dark:border-red-500" : "border-emerald-500 dark:border-emerald-400"}
-                gradient={deletingBalanceIds.has(balance.id) ? "linear-gradient(135deg, rgb(248, 113, 113), rgb(239, 68, 68))" : "linear-gradient(135deg, rgb(16, 185, 129), rgb(5, 150, 105))"}
+                borderClassName="border-emerald-500 dark:border-emerald-400"
+                gradient="linear-gradient(135deg, rgb(16, 185, 129), rgb(5, 150, 105))"
                 actions={
                   <>
                     <button
@@ -278,6 +285,18 @@ export const CashEditor: React.FC = () => {
         onCurrencyChange={setFormCurrency}
         onSave={handleSaveBalance}
         availableCurrencies={availableCurrencies}
+      />
+      <DeleteConfirmModal
+        open={pendingDeleteCashId !== null}
+        isDeleting={deletingCashIds.size > 0}
+        onConfirm={confirmDeleteCash}
+        onCancel={() => setPendingDeleteCashId(null)}
+      />
+      <DeleteConfirmModal
+        open={pendingDeleteBalanceId !== null}
+        isDeleting={deletingBalanceIds.size > 0}
+        onConfirm={confirmDeleteBalance}
+        onCancel={() => setPendingDeleteBalanceId(null)}
       />
     </div>
   );

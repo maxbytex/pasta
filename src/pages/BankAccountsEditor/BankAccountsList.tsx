@@ -3,7 +3,6 @@ import { Plus, Building2 } from "lucide-react";
 import ErrorBanner from "../../components/common/ErrorBanner";
 import { Skeleton } from "../../components/Skeleton";
 import { NavLink } from "react-router-dom";
-import SavingBadge from "../../components/common/SavingBadge";
 
 // BankAccount type is used only in interfaces file
 
@@ -46,7 +45,6 @@ export const BankAccountsList: React.FC<BankAccountsListProps> = ({
   loading,
   error,
   onCreate,
-  isSavingList = false,
 }) => {
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 pb-6 md:pb-6 flex flex-col relative max-md:rounded-none max-md:border-0 max-md:pb-16">
@@ -54,7 +52,6 @@ export const BankAccountsList: React.FC<BankAccountsListProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Bank Accounts</h3>
-            {isSavingList && <SavingBadge />}
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {accounts.length} accounts

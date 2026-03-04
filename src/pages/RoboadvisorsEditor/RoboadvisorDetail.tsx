@@ -10,6 +10,7 @@ import { Skeleton } from "../../components/Skeleton";
 import { formatFeePercentage } from "../../utils/percentage-utils";
 import { formatCurrencyWithAlignment } from "../../utils/currency-utils";
 import type { RoboadvisorDetailProps } from "../../interfaces/roboadvisor-detail/roboadvisor-detail-props-interface";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
 
 export const RoboadvisorDetail: React.FC<RoboadvisorDetailProps> = ({ onEdit, onDelete, onBack }) => {
   const {
@@ -28,7 +29,6 @@ export const RoboadvisorDetail: React.FC<RoboadvisorDetailProps> = ({ onEdit, on
     editingBalance,
     setEditingBalance,
     isSavingBalance,
-    isSavingBalancesList,
     formBalanceDate,
     setFormBalanceDate,
     formBalanceType,
@@ -42,7 +42,6 @@ export const RoboadvisorDetail: React.FC<RoboadvisorDetailProps> = ({ onEdit, on
     editingFund,
     setEditingFund,
     isSavingFund,
-    isSavingFundsList,
     formFundName,
     setFormFundName,
     formFundIsin,
@@ -66,6 +65,14 @@ export const RoboadvisorDetail: React.FC<RoboadvisorDetailProps> = ({ onEdit, on
     fetchNextBalances,
     hasNextBalances,
     isFetchingNextBalances,
+    pendingDeleteBalanceId,
+    setPendingDeleteBalanceId,
+    pendingDeleteFundId,
+    setPendingDeleteFundId,
+    confirmDeleteBalance,
+    confirmDeleteFund,
+    deleteBalanceMutation,
+    deleteFundMutation,
   } = useRoboadvisorDetail();
 
   if (loading || !roboadvisor) {
@@ -161,7 +168,6 @@ export const RoboadvisorDetail: React.FC<RoboadvisorDetailProps> = ({ onEdit, on
               fetchNextPage={fetchNextBalances}
               hasNextPage={hasNextBalances}
               isFetchingNextPage={isFetchingNextBalances}
-              isSavingList={isSavingBalancesList}
             />
           ) : activeTab === "fees" ? (
             <div>
@@ -219,7 +225,6 @@ export const RoboadvisorDetail: React.FC<RoboadvisorDetailProps> = ({ onEdit, on
                 setShowFundModal(true);
               }}
               onDelete={(id) => removeFund(id)}
-              isSavingList={isSavingFundsList}
             />
           )}
         </div>
@@ -262,6 +267,18 @@ export const RoboadvisorDetail: React.FC<RoboadvisorDetailProps> = ({ onEdit, on
           onSave={saveFund}
         />
       </div>
+      <DeleteConfirmModal
+        open={pendingDeleteBalanceId !== null}
+        isDeleting={deleteBalanceMutation.isPending}
+        onConfirm={confirmDeleteBalance}
+        onCancel={() => setPendingDeleteBalanceId(null)}
+      />
+      <DeleteConfirmModal
+        open={pendingDeleteFundId !== null}
+        isDeleting={deleteFundMutation.isPending}
+        onConfirm={confirmDeleteFund}
+        onCancel={() => setPendingDeleteFundId(null)}
+      />
     </>
   );
 };

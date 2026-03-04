@@ -8,6 +8,7 @@ import { CategoryCard } from "../../components/CategoryCard";
 import ErrorBanner from "../../components/common/ErrorBanner";
 import type { BillCategory } from "../../interfaces/bill-category-interface";
 import { clsx } from "clsx";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
 
 export const BillCategoriesTab: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
@@ -17,6 +18,8 @@ export const BillCategoriesTab: React.FC = () => {
   const [name, setName] = useState("");
   const [hexColor, setHexColor] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
 
   const PRESET_COLORS = [
     "#10b981", "#3b82f6", "#f87171", "#fbbf24", "#a78bfa", "#f472b6", 
@@ -93,12 +96,21 @@ export const BillCategoriesTab: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Delete this category? This might affect existing bills.")) return;
+  const handleDelete = (id: number) => {
+    setPendingDeleteId(id);
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (pendingDeleteId === null) return;
+    const id = pendingDeleteId;
+    setIsDeletingCategory(true);
     try {
       await deleteMutation.mutateAsync(id);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsDeletingCategory(false);
+      setPendingDeleteId(null);
     }
   };
 
@@ -244,6 +256,12 @@ export const BillCategoriesTab: React.FC = () => {
           </div>
         </div>
       )}
+      <DeleteConfirmModal
+        open={pendingDeleteId !== null}
+        isDeleting={isDeletingCategory}
+        onConfirm={confirmDeleteCategory}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Edit2, Plus, Trash2, ArrowLeft, Receipt as ReceiptIcon } from "lucide-react";
 import { useMerchants, useMerchantReceipts, useInvalidateQueries } from "../../hooks/useFinanceData";
@@ -10,6 +10,7 @@ import { deleteReceipt } from "../../services/api/merchants";
 import { useMutation } from "@tanstack/react-query";
 import type { Merchant } from "../../interfaces/merchant-interface";
 import type { Receipt } from "../../interfaces/receipt-interface";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
 
 interface MerchantDetailProps {
   onEdit: (merchant: Merchant) => void;
@@ -34,6 +35,8 @@ export const MerchantDetail: React.FC<MerchantDetailProps> = ({
     mutationFn: (id: number) => deleteReceipt(id),
     onSuccess: () => invalidate.invalidateMerchantReceipts(Number(merchantId)),
   });
+
+  const [pendingDeleteReceiptId, setPendingDeleteReceiptId] = useState<number | null>(null);
 
   if (!merchant) return null;
 
@@ -134,11 +137,7 @@ export const MerchantDetail: React.FC<MerchantDetailProps> = ({
                       <Edit2 size={16} />
                     </button>
                     <button
-                      onClick={() => {
-                        if (confirm("Delete this receipt?")) {
-                          deleteReceiptMutation.mutate(receipt.id);
-                        }
-                      }}
+                      onClick={() => setPendingDeleteReceiptId(receipt.id)}
                       className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
                     >
                       <Trash2 size={16} />
@@ -165,6 +164,18 @@ export const MerchantDetail: React.FC<MerchantDetailProps> = ({
           </div>
         )}
       </div>
+      <DeleteConfirmModal
+        open={pendingDeleteReceiptId !== null}
+        isDeleting={deleteReceiptMutation.isPending}
+        onConfirm={() => {
+          if (pendingDeleteReceiptId === null) return;
+          const id = pendingDeleteReceiptId;
+          deleteReceiptMutation.mutate(id, {
+            onSettled: () => setPendingDeleteReceiptId(null),
+          });
+        }}
+        onCancel={() => setPendingDeleteReceiptId(null)}
+      />
     </div>
   );
 };

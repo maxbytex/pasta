@@ -8,6 +8,7 @@ import MerchantsList from "./MerchantsList";
 import MerchantDetail from "./MerchantDetail";
 import ReceiptDetailEditor from "./ReceiptDetailEditor";
 import type { Merchant } from "../../interfaces/merchant-interface";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
 
 export const MerchantsEditor: React.FC = () => {
   const navigate = useNavigate();
@@ -17,9 +18,8 @@ export const MerchantsEditor: React.FC = () => {
 
   const createMerchantMutation = useMutation<Merchant, unknown, string>({
     mutationFn: (name: string) => createMerchant(name),
-    onSuccess: (data) => {
+    onSuccess: () => {
       invalidate.invalidateMerchants();
-      navigate(`/editors/merchants/${data.id}`);
     },
   });
 
@@ -40,6 +40,8 @@ export const MerchantsEditor: React.FC = () => {
   const [editingMerchant, setEditingMerchant] = useState<Merchant | null>(null);
   const [isSavingMerchant, setIsSavingMerchant] = useState(false);
   const [formName, setFormName] = useState("");
+  const [pendingDeleteMerchantId, setPendingDeleteMerchantId] = useState<number | null>(null);
+  const [isDeletingMerchant, setIsDeletingMerchant] = useState(false);
 
   const handleCreate = () => {
     setEditingMerchant(null);
@@ -54,8 +56,19 @@ export const MerchantsEditor: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    if (!confirm("Delete this merchant and all its receipts?")) return;
-    deleteMerchantMutation.mutate(id);
+    setPendingDeleteMerchantId(id);
+  };
+
+  const confirmDeleteMerchant = () => {
+    if (pendingDeleteMerchantId === null) return;
+    const id = pendingDeleteMerchantId;
+    setIsDeletingMerchant(true);
+    deleteMerchantMutation.mutate(id, {
+      onSettled: () => {
+        setIsDeletingMerchant(false);
+        setPendingDeleteMerchantId(null);
+      },
+    });
   };
 
   const handleSaveMerchant = (name: string) => {
@@ -66,14 +79,17 @@ export const MerchantsEditor: React.FC = () => {
     if (editingMerchant) {
       updateMerchantMutation.mutate(
         { id: editingMerchant.id, name: trimmedName },
-        { onSettled: () => setIsSavingMerchant(false) }
+        {
+          onSuccess: () => setShowMerchantModal(false),
+          onSettled: () => setIsSavingMerchant(false),
+        },
       );
     } else {
       createMerchantMutation.mutate(trimmedName, {
+        onSuccess: () => setShowMerchantModal(false),
         onSettled: () => setIsSavingMerchant(false),
       });
     }
-    setShowMerchantModal(false);
   };
 
   return (
@@ -119,6 +135,12 @@ export const MerchantsEditor: React.FC = () => {
           isSaving={isSavingMerchant}
         />
       )}
+      <DeleteConfirmModal
+        open={pendingDeleteMerchantId !== null}
+        isDeleting={isDeletingMerchant}
+        onConfirm={confirmDeleteMerchant}
+        onCancel={() => setPendingDeleteMerchantId(null)}
+      />
     </>
   );
 };

@@ -1,4 +1,5 @@
 import React from "react";
+import { CurrencySelect } from "../../../components/common/CurrencySelect";
 
 export const FundModal: React.FC<{
   show: boolean;
@@ -57,7 +58,11 @@ export const FundModal: React.FC<{
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Currency</label>
-              <input type="text" value={currency} onChange={(e) => onCurrencyChange(e.target.value.toUpperCase())} maxLength={3} className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-xl" />
+              <CurrencySelect
+                value={currency}
+                onChange={onCurrencyChange}
+                disabled={isSaving}
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Weight (0-1)</label>

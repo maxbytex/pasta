@@ -10,7 +10,7 @@ import type { Bill } from "../../interfaces/bill-interface";
 import type { Receipt } from "../../interfaces/receipt-interface";
 import type { Subscription } from "../../interfaces/subscription-interface";
 import type { KpiData } from "../../interfaces/dashboard-data-interface";
-import { DEFAULT_CURRENCY_CODE } from "../../constants/currency-constants";
+import { getDefaultCurrencyCode } from "../../constants/currency-constants";
 
 export function useDashboardKpis(
   allBankBalances: BankAccountBalance[],
@@ -28,7 +28,7 @@ export function useDashboardKpis(
   return useMemo((): KpiData | null => {
     if (loadingKpis) return null;
 
-    let currency = DEFAULT_CURRENCY_CODE;
+    let currency = getDefaultCurrencyCode();
 
     const bankBalancesByAccount: Record<number, BankAccountBalance[]> = {};
     (allBankBalances || []).forEach((b) => {

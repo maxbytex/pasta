@@ -11,6 +11,7 @@ import {
   deleteRoboadvisorFund,
 } from "../../../services/api/roboadvisor";
 import { useRoboadvisors, useBankAccounts, useInfiniteRoboadvisorBalances, useRoboadvisorFunds, useInvalidateQueries } from "../../../hooks/useFinanceData";
+import { getDefaultCurrencyCode } from "../../../constants/currency-constants";
 
 export const useRoboadvisorDetail = () => {
   const { roboadvisorId, tab } = useParams<{ roboadvisorId: string; tab: string }>();
@@ -55,18 +56,21 @@ export const useRoboadvisorDetail = () => {
   const [editingFund, setEditingFund] = useState<RoboadvisorFund | null>(null);
   const [isSavingFund, setIsSavingFund] = useState(false);
 
+  const [pendingDeleteBalanceId, setPendingDeleteBalanceId] = useState<number | null>(null);
+  const [pendingDeleteFundId, setPendingDeleteFundId] = useState<number | null>(null);
+
   // Form states for balance
   const [formBalanceDate, setFormBalanceDate] = useState("");
   const [formBalanceType, setFormBalanceType] = useState<"deposit" | "withdrawal" | "adjustment">("deposit");
   const [formBalanceAmount, setFormBalanceAmount] = useState("");
-  const [formBalanceCurrency, setFormBalanceCurrency] = useState("EUR");
+  const [formBalanceCurrency, setFormBalanceCurrency] = useState(getDefaultCurrencyCode());
 
   // Form states for fund
   const [formFundName, setFormFundName] = useState("");
   const [formFundIsin, setFormFundIsin] = useState("");
   const [formFundAssetClass, setFormFundAssetClass] = useState("equity");
   const [formFundRegion, setFormFundRegion] = useState("Global");
-  const [formFundCurrency, setFormFundCurrency] = useState("USD");
+  const [formFundCurrency, setFormFundCurrency] = useState(getDefaultCurrencyCode());
   const [formFundWeight, setFormFundWeight] = useState("0.50");
   const [formFundShareCount, setFormFundShareCount] = useState<number | undefined>(undefined);
 
@@ -136,7 +140,7 @@ export const useRoboadvisorDetail = () => {
     setFormBalanceDate(new Date().toISOString().split("T")[0]);
     setFormBalanceType("deposit");
     setFormBalanceAmount("");
-    setFormBalanceCurrency("EUR");
+    setFormBalanceCurrency(getDefaultCurrencyCode());
     setShowBalanceModal(true);
   };
 
@@ -162,13 +166,8 @@ export const useRoboadvisorDetail = () => {
     }
   };
 
-  const removeBalance = async (id: number) => {
-    if (!confirm("Delete this balance entry?")) return;
-    try {
-      await deleteBalanceMutation.mutateAsync(id);
-    } catch (err) {
-      console.error(err);
-    }
+  const removeBalance = (id: number) => {
+    setPendingDeleteBalanceId(id);
   };
 
   const openAddFund = () => {
@@ -177,7 +176,7 @@ export const useRoboadvisorDetail = () => {
     setFormFundIsin("");
     setFormFundAssetClass("equity");
     setFormFundRegion("Global");
-    setFormFundCurrency("USD");
+    setFormFundCurrency(getDefaultCurrencyCode());
     setFormFundWeight("0.50");
     setFormFundShareCount(undefined);
     setShowFundModal(true);
@@ -208,17 +207,33 @@ export const useRoboadvisorDetail = () => {
     }
   };
 
-  const removeFund = async (id: number) => {
-    if (!confirm("Delete this fund allocation?")) return;
+  const removeFund = (id: number) => {
+    setPendingDeleteFundId(id);
+  };
+
+  const confirmDeleteBalance = async () => {
+    if (pendingDeleteBalanceId === null) return;
+    const id = pendingDeleteBalanceId;
+    try {
+      await deleteBalanceMutation.mutateAsync(id);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPendingDeleteBalanceId(null);
+    }
+  };
+
+  const confirmDeleteFund = async () => {
+    if (pendingDeleteFundId === null) return;
+    const id = pendingDeleteFundId;
     try {
       await deleteFundMutation.mutateAsync(id);
     } catch (err) {
       console.error(err);
+    } finally {
+      setPendingDeleteFundId(null);
     }
   };
-
-  const isSavingBalancesList = createBalanceMutation.isPending || updateBalanceMutation.isPending || deleteBalanceMutation.isPending;
-  const isSavingFundsList = createFundMutation.isPending || updateFundMutation.isPending || deleteFundMutation.isPending;
 
   return {
     roboadvisor,
@@ -243,7 +258,6 @@ export const useRoboadvisorDetail = () => {
     editingBalance,
     setEditingBalance,
     isSavingBalance,
-    isSavingBalancesList,
     formBalanceDate,
     setFormBalanceDate,
     formBalanceType,
@@ -257,7 +271,6 @@ export const useRoboadvisorDetail = () => {
     editingFund,
     setEditingFund,
     isSavingFund,
-    isSavingFundsList,
     formFundName,
     setFormFundName,
     formFundIsin,
@@ -282,6 +295,12 @@ export const useRoboadvisorDetail = () => {
     fetchNextBalances,
     hasNextBalances,
     isFetchingNextBalances,
+    pendingDeleteBalanceId,
+    setPendingDeleteBalanceId,
+    pendingDeleteFundId,
+    setPendingDeleteFundId,
+    confirmDeleteBalance,
+    confirmDeleteFund,
     // expose mutations in case consumers need them
     createBalanceMutation,
     updateBalanceMutation,

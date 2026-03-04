@@ -8,6 +8,8 @@ import BillsHistoryTab from "./BillsHistoryTab";
 import BillCategoriesTab from "./BillCategoriesTab";
 import { clsx } from "clsx";
 import type { BillCategory } from "../../interfaces/bill-category-interface";
+import { DeleteConfirmModal } from "../../components/common/DeleteConfirmModal";
+import { CurrencySelect } from "../../components/common/CurrencySelect";
 
 export const BillsEditor: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"history" | "categories">("history");
@@ -20,10 +22,14 @@ export const BillsEditor: React.FC = () => {
     setShowModal,
     editingBill,
     isSaving,
+    deletingBillIds,
     handleCreate,
     handleEdit,
     handleDelete,
     handleSave,
+    pendingDeleteId,
+    confirmDelete,
+    cancelDelete,
     formDate,
     setFormDate,
     formCategory,
@@ -106,6 +112,7 @@ export const BillsEditor: React.FC = () => {
             onCreate={handleCreate}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            deletingIds={deletingBillIds}
           />
         ) : (
           <BillCategoriesTab />
@@ -154,13 +161,9 @@ export const BillsEditor: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Currency <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
+                  <CurrencySelect
                     value={formCurrency}
-                    onChange={(e) => setFormCurrency(e.target.value.toUpperCase())}
-                    maxLength={3}
-                    placeholder="EUR"
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                    onChange={setFormCurrency}
                   />
                 </div>
               </div>
@@ -188,6 +191,12 @@ export const BillsEditor: React.FC = () => {
           </div>
         </div>
       )}
+      <DeleteConfirmModal
+        open={pendingDeleteId !== null}
+        isDeleting={deletingBillIds.size > 0}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
     </div>
   );
 };
