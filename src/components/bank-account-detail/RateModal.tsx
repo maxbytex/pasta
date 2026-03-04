@@ -10,6 +10,7 @@ export const RateModal: React.FC<RateModalProps> = ({
   setFormRateStartDate,
   formRateEndDate,
   setFormRateEndDate,
+  formRateError,
   isSavingRate,
   onClose,
   onSave,
@@ -34,6 +35,9 @@ export const RateModal: React.FC<RateModalProps> = ({
               placeholder="1"
               className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
             />
+            {formRateError && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400">{formRateError}</p>
+            )}
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Start Date</label>
