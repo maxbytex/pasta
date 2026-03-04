@@ -67,17 +67,6 @@ export const EditorsPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Editors
           </h1>
-          <div
-            className={clsx(
-              "mb-4 rounded-lg border px-3 py-2 text-xs font-medium flex items-center gap-2 transition-colors",
-              isSavingChanges
-                ? "text-amber-700 dark:text-amber-300 bg-amber-50/90 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800"
-                : "text-emerald-700 dark:text-emerald-300 bg-emerald-50/90 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800"
-            )}
-          >
-            {isSavingChanges && <Loader2 size={14} className="animate-spin" />}
-            <span>{isSavingChanges ? "Saving changes..." : "All changes saved"}</span>
-          </div>
           <nav className="space-y-1">
             {tabs.map((tab) => (
               <NavLink
@@ -141,18 +130,22 @@ export const EditorsPage: React.FC = () => {
       </div>
 
       <div className="md:hidden fixed left-1/2 -translate-x-1/2 z-[60]" style={{ bottom: '156px' }}>
-        <div
-          className={clsx(
-            "rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur flex items-center gap-1.5 shadow-sm",
-            isSavingChanges
-              ? "text-amber-700 dark:text-amber-300 bg-amber-50/95 dark:bg-amber-900/60 border-amber-200 dark:border-amber-800"
-              : "text-emerald-700 dark:text-emerald-300 bg-emerald-50/95 dark:bg-emerald-900/60 border-emerald-200 dark:border-emerald-800"
-          )}
-        >
-          {isSavingChanges && <Loader2 size={12} className="animate-spin" />}
-          <span>{isSavingChanges ? "Saving changes..." : "Saved"}</span>
-        </div>
+        {isSavingChanges && (
+          <div className="rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur flex items-center gap-1.5 shadow-sm text-amber-700 dark:text-amber-300 bg-amber-50/95 dark:bg-amber-900/60 border-amber-200 dark:border-amber-800">
+            <Loader2 size={12} className="animate-spin" />
+            <span>Saving changes...</span>
+          </div>
+        )}
       </div>
+
+      {isSavingChanges && (
+        <div className="max-md:hidden fixed left-1/2 -translate-x-1/2 z-[60]" style={{ bottom: '24px' }}>
+          <div className="rounded-full border px-4 py-2 text-sm font-medium backdrop-blur flex items-center gap-2 shadow-lg text-amber-700 dark:text-amber-300 bg-amber-50/95 dark:bg-amber-900/60 border-amber-200 dark:border-amber-800">
+            <Loader2 size={14} className="animate-spin" />
+            <span>Saving changes...</span>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
