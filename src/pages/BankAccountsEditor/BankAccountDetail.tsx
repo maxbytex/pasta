@@ -121,14 +121,14 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
     deleteBalanceMutation.mutate(id);
   };
 
-  const createRateMutation = useMutation<BankAccountInterestRate, unknown, { accountId: number; rate: string; startDate: string; endDate?: string }>({
+  const createRateMutation = useMutation<BankAccountInterestRate, unknown, { accountId: number; rate: number; startDate: string; endDate?: string }>({
     mutationFn: (payload) => createBankAccountInterestRate(payload.accountId, payload.rate, payload.startDate, payload.endDate),
     onSuccess: () => {
       if (accountIdNum) invalidate.invalidateBankAccountInterestRates(accountIdNum);
     },
   });
 
-  const updateRateMutation = useMutation<BankAccountInterestRate, unknown, { id: number; rate: string; startDate: string; endDate?: string }>({
+  const updateRateMutation = useMutation<BankAccountInterestRate, unknown, { id: number; rate: number; startDate: string; endDate?: string }>({
     mutationFn: (payload) => updateBankAccountInterestRate(payload.id, payload.rate, payload.startDate, payload.endDate),
     onSuccess: () => {
       if (accountIdNum) invalidate.invalidateBankAccountInterestRates(accountIdNum);
@@ -146,7 +146,7 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
     if (!account) return;
     setIsSavingRate(true);
     const decimalRate = convertPercentageStringToDecimal(formRateValue);
-    const rateValue = decimalRate !== null ? decimalRate.toString() : "0";
+    const rateValue = decimalRate ?? 0;
 
     if (editingRate) {
       updateRateMutation.mutate({ id: editingRate.id, rate: rateValue, startDate: formRateStartDate, endDate: formRateEndDate || undefined }, { onSettled: () => setIsSavingRate(false) });
