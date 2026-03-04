@@ -153,6 +153,9 @@ export function useCryptoExchangesEditor() {
     deleteAssetMutation.mutate(id);
   };
 
+  const isSavingExchangesList = createExchangeMutation.isPending || updateExchangeMutation.isPending || deleteExchangeMutation.isPending;
+  const isSavingAssetsList = createAssetMutation.isPending || updateAssetMutation.isPending || deleteAssetMutation.isPending;
+
   const calculateStats = () => {
     if (!selectedExchange) {
       return {
@@ -201,6 +204,7 @@ export function useCryptoExchangesEditor() {
     setShowExchangeModal,
     editingExchange,
     isSavingExchange,
+    isSavingExchangesList,
     handleCreateExchange,
     handleEditExchange,
     handleSaveExchange,
@@ -209,6 +213,7 @@ export function useCryptoExchangesEditor() {
     setShowAssetModal,
     editingAsset,
     isSavingAsset,
+    isSavingAssetsList,
     handleCreateAsset,
     handleEditAsset,
     handleSaveAsset,

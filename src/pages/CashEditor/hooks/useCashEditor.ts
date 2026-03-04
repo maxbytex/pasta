@@ -137,6 +137,9 @@ export function useCashEditor() {
     deleteBalanceMutation.mutate(id);
   };
 
+  const isSavingCashList = createCashMutation.isPending || updateCashMutation.isPending || deleteCashMutation.isPending;
+  const isSavingBalancesList = createBalanceMutation.isPending || updateBalanceMutation.isPending || deleteBalanceMutation.isPending;
+
   const calculateStats = () => {
     let totalBalance = 0;
 
@@ -159,6 +162,7 @@ export function useCashEditor() {
     setShowCashModal,
     editingCash,
     isSavingCash,
+    isSavingCashList,
     handleCreateCash,
     handleEditCash,
     handleSaveCash,
@@ -167,6 +171,7 @@ export function useCashEditor() {
     setShowBalanceModal,
     editingBalance,
     isSavingBalance,
+    isSavingBalancesList,
     handleCreateBalance,
     handleEditBalance,
     handleSaveBalance,

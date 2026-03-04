@@ -4,6 +4,7 @@ import { formatCurrencyWithAlignment } from "../../utils/currency-utils";
 import { formatDate } from "../../utils/date-utils";
 import type { BalanceHistorySectionProps } from "../../interfaces/bank-account-detail/balance-history-section-props-interface";
 import { HistoryCard } from "./HistoryCard";
+import SavingBadge from "../common/SavingBadge";
 
 export const BalanceHistorySection: React.FC<BalanceHistorySectionProps> = ({
   balances,
@@ -13,10 +14,14 @@ export const BalanceHistorySection: React.FC<BalanceHistorySectionProps> = ({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
+  isSavingList = false,
 }) => (
   <div>
       <div className="flex justify-between items-center mb-4">
+      <div className="flex items-center gap-2">
       <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Balance History</h4>
+      {isSavingList && <SavingBadge />}
+      </div>
       <button
         onClick={onAdd}
         className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl font-semibold text-sm leading-none transition-all active:translate-y-[1px] active:scale-[0.995] cursor-pointer bg-emerald-500 text-white hover:bg-emerald-600"

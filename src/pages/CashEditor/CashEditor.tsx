@@ -9,6 +9,7 @@ import { formatDate } from "../../utils/date-utils";
 import useCashEditor from "./hooks/useCashEditor";
 import CashCard from "./components/CashCard";
 import BalanceModal from "./components/BalanceModal";
+import SavingBadge from "../../components/common/SavingBadge";
 
 
 export const CashEditor: React.FC = () => {
@@ -22,6 +23,7 @@ export const CashEditor: React.FC = () => {
     setShowCashModal,
     editingCash,
     isSavingCash,
+    isSavingCashList,
     handleCreateCash,
     handleEditCash,
     handleSaveCash,
@@ -30,6 +32,7 @@ export const CashEditor: React.FC = () => {
     setShowBalanceModal,
     editingBalance,
     isSavingBalance,
+    isSavingBalancesList,
     handleCreateBalance,
     handleEditBalance,
     handleSaveBalance,
@@ -57,6 +60,7 @@ export const CashEditor: React.FC = () => {
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {cash.length} labels
             </p>
+            {isSavingCashList && <SavingBadge />}
           </div>
 
           <div className="flex items-center sm:items-center">
@@ -167,7 +171,10 @@ export const CashEditor: React.FC = () => {
       </div>
 
       <div className="flex items-center justify-between mb-4">
-        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Balance History</h4>
+        <div className="flex items-center gap-2">
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Balance History</h4>
+          {isSavingBalancesList && <SavingBadge />}
+        </div>
         <button
           onClick={handleCreateBalance}
           className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl font-semibold text-sm leading-none transition-all active:translate-y-[1px] active:scale-[0.995] cursor-pointer bg-emerald-500 text-white hover:bg-emerald-600"

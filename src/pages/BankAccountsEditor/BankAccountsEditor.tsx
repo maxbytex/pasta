@@ -183,10 +183,12 @@ export const BankAccountsEditor: React.FC = () => {
     setShowAccountModal(false);
   };
 
+  const isSavingAccountsList = createAccountMutation.isPending || updateAccountMutation.isPending || deleteAccountMutation.isPending;
+
   return (
     <>
       <Routes>
-        <Route index element={<BankAccountsList accounts={accounts} loading={loading} error={error ? (error instanceof Error ? error.message : String(error)) : null} onCreate={handleCreate} />} />
+        <Route index element={<BankAccountsList accounts={accounts} loading={loading} error={error ? (error instanceof Error ? error.message : String(error)) : null} onCreate={handleCreate} isSavingList={isSavingAccountsList} />} />
         <Route
           path=":accountId/:tab"
           element={

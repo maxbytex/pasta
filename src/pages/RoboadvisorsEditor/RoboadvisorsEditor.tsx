@@ -96,6 +96,8 @@ export const RoboadvisorsEditor: React.FC = () => {
     onSuccess: () => invalidate.invalidateRoboadvisors(),
   });
 
+  const isSavingRoboadvisorsList = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+
   const handleBack = () => {
     navigate("/editors/roboadvisors");
   };
@@ -147,7 +149,7 @@ export const RoboadvisorsEditor: React.FC = () => {
       <Routes>
         <Route
           index
-          element={<RoboadvisorsList roboadvisors={roboadvisors} bankAccounts={bankAccounts} loading={loading} error={roboError ? (roboError instanceof Error ? roboError.message : String(roboError)) : null} onCreate={handleCreate} />}
+          element={<RoboadvisorsList roboadvisors={roboadvisors} bankAccounts={bankAccounts} loading={loading} error={roboError ? (roboError instanceof Error ? roboError.message : String(roboError)) : null} onCreate={handleCreate} isSavingList={isSavingRoboadvisorsList} />}
         />
         <Route
           path=":roboadvisorId/:tab"

@@ -7,6 +7,7 @@ import { formatFeePercentage } from "../../utils/percentage-utils";
 import type { BankAccount } from "../../interfaces/bank-account-interface";
 
 import type { RoboadvisorsListProps, RoboadvisorListItem } from "../../interfaces/pages/roboadvisor-list-interface";
+import SavingBadge from "../../components/common/SavingBadge";
 
 export const RoboadvisorsList: React.FC<RoboadvisorsListProps> = ({
   roboadvisors,
@@ -14,6 +15,7 @@ export const RoboadvisorsList: React.FC<RoboadvisorsListProps> = ({
   loading,
   error,
   onCreate,
+  isSavingList = false,
 }) => {
 
   const getBankAccountName = (id: number) =>
@@ -27,6 +29,7 @@ export const RoboadvisorsList: React.FC<RoboadvisorsListProps> = ({
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {roboadvisors.length} roboadvisors
           </p>
+          {isSavingList && <SavingBadge />}
         </div>
         <div className="flex items-center">
           <button

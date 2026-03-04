@@ -9,4 +9,5 @@ export interface RoboadvisorsListProps {
   loading: boolean;
   error?: string | null;
   onCreate: () => void;
+  isSavingList?: boolean;
 }

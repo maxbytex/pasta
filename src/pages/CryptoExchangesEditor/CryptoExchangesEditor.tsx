@@ -11,6 +11,7 @@ import { formatDate } from "../../utils/date-utils";
 import useCryptoExchangesEditor from "./hooks/useCryptoExchangesEditor";
 import ExchangeCard from "./components/ExchangeCard";
 import AssetModal from "./components/AssetModal";
+import SavingBadge from "../../components/common/SavingBadge";
 
 export const CryptoExchangesEditor: React.FC = () => {
   const {
@@ -23,6 +24,7 @@ export const CryptoExchangesEditor: React.FC = () => {
     setShowExchangeModal,
     editingExchange,
     isSavingExchange,
+    isSavingExchangesList,
     handleCreateExchange,
     handleEditExchange,
     handleSaveExchange,
@@ -31,6 +33,7 @@ export const CryptoExchangesEditor: React.FC = () => {
     setShowAssetModal,
     editingAsset,
     isSavingAsset,
+    isSavingAssetsList,
     handleCreateAsset,
     handleEditAsset,
     handleSaveAsset,
@@ -61,6 +64,7 @@ export const CryptoExchangesEditor: React.FC = () => {
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                {exchanges.length} exchanges
             </p>
+            {isSavingExchangesList && <SavingBadge />}
           </div>
 
           <div className="flex items-center sm:items-center">
@@ -187,7 +191,10 @@ export const CryptoExchangesEditor: React.FC = () => {
       </div>
 
       <div className="flex items-center justify-between mb-4">
-        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Asset History</h4>
+        <div className="flex items-center gap-2">
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Asset History</h4>
+          {isSavingAssetsList && <SavingBadge />}
+        </div>
           <button
             onClick={handleCreateAsset}
             className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl font-semibold text-sm leading-none transition-all active:translate-y-[1px] active:scale-[0.995] cursor-pointer bg-emerald-500 text-white hover:bg-emerald-600"

@@ -192,6 +192,8 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
   const activeTab = tab || "balances";
   const loadingDetails = loadingBalances || loadingRates;
   const { currentBalance, currencyCode, latestRate, monthlyProfit, annualProfit } = getBankAccountSummary(account, balances);
+  const isSavingBalancesList = createBalanceMutation.isPending || updateBalanceMutation.isPending || deleteBalanceMutation.isPending;
+  const isSavingRatesList = createRateMutation.isPending || updateRateMutation.isPending || deleteRateMutation.isPending;
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col relative max-md:rounded-none max-md:border-0">
@@ -277,6 +279,7 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
                 fetchNextPage={fetchNextBalances}
                 hasNextPage={hasNextBalances}
                 isFetchingNextPage={isFetchingNextBalances}
+                isSavingList={isSavingBalancesList}
               />
             )
             : (
@@ -302,6 +305,7 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
                 fetchNextPage={fetchNextRates}
                 hasNextPage={hasNextRates}
                 isFetchingNextPage={isFetchingNextRates}
+                isSavingList={isSavingRatesList}
               />
             )}
       </div>

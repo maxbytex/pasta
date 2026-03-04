@@ -217,6 +217,9 @@ export const useRoboadvisorDetail = () => {
     }
   };
 
+  const isSavingBalancesList = createBalanceMutation.isPending || updateBalanceMutation.isPending || deleteBalanceMutation.isPending;
+  const isSavingFundsList = createFundMutation.isPending || updateFundMutation.isPending || deleteFundMutation.isPending;
+
   return {
     roboadvisor,
     loading,
@@ -240,6 +243,7 @@ export const useRoboadvisorDetail = () => {
     editingBalance,
     setEditingBalance,
     isSavingBalance,
+    isSavingBalancesList,
     formBalanceDate,
     setFormBalanceDate,
     formBalanceType,
@@ -253,6 +257,7 @@ export const useRoboadvisorDetail = () => {
     editingFund,
     setEditingFund,
     isSavingFund,
+    isSavingFundsList,
     formFundName,
     setFormFundName,
     formFundIsin,
