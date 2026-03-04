@@ -52,11 +52,13 @@ export const BankAccountsList: React.FC<BankAccountsListProps> = ({
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 pb-6 md:pb-6 flex flex-col relative max-md:rounded-none max-md:border-0 max-md:pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Bank Accounts</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Bank Accounts</h3>
+            {isSavingList && <SavingBadge />}
+          </div>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {accounts.length} accounts
           </p>
-          {isSavingList && <SavingBadge />}
         </div>
 
           <div className="flex items-center sm:items-center">

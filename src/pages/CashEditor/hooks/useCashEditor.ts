@@ -13,9 +13,8 @@ export function useCashEditor() {
 
   const createCashMutation = useMutation<CashInterface, unknown, string>({
     mutationFn: (name: string) => createCash(name),
-    onSuccess: (data) => {
+    onSuccess: () => {
       invalidate.invalidateCash();
-      setSelectedCash(data as CashInterface);
     },
   });
 

@@ -56,11 +56,13 @@ export const CashEditor: React.FC = () => {
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col relative max-md:rounded-none max-md:border-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Cash</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Cash</h3>
+              {isSavingCashList && <SavingBadge />}
+            </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {cash.length} labels
             </p>
-            {isSavingCashList && <SavingBadge />}
           </div>
 
           <div className="flex items-center sm:items-center">
