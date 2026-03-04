@@ -41,8 +41,14 @@ export const useChatSession = () => {
   // Set selected model when models load or change
   useEffect(() => {
     if (models.length > 0 && !selectedModel) {
-      const preferredModel = models.find((m: Model) => m.id === "big-pickle");
-      setSelectedModel(preferredModel || models[0]);
+      const freeModels = models.filter((m: Model) => m.id.endsWith("-free"));
+
+      if (freeModels.length > 0) {
+        const randomFreeModel = freeModels[Math.floor(Math.random() * freeModels.length)];
+        setSelectedModel(randomFreeModel);
+      } else {
+        setSelectedModel(models[0]);
+      }
     }
   }, [models, selectedModel]);
 
