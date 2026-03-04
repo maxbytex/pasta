@@ -125,21 +125,33 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
   const createRateMutation = useMutation<BankAccountInterestRate, unknown, { accountId: number; rate: number; startDate: string; endDate?: string }>({
     mutationFn: (payload) => createBankAccountInterestRate(payload.accountId, payload.rate, payload.startDate, payload.endDate),
     onSuccess: () => {
-      if (accountIdNum) invalidate.invalidateBankAccountInterestRates(accountIdNum);
+      invalidate.invalidateBankAccounts();
+      if (accountIdNum) {
+        invalidate.invalidateBankAccountInterestRates(accountIdNum);
+        invalidate.invalidateBankAccountBalances(accountIdNum);
+      }
     },
   });
 
   const updateRateMutation = useMutation<BankAccountInterestRate, unknown, { id: number; rate: number; startDate: string; endDate?: string }>({
     mutationFn: (payload) => updateBankAccountInterestRate(payload.id, payload.rate, payload.startDate, payload.endDate),
     onSuccess: () => {
-      if (accountIdNum) invalidate.invalidateBankAccountInterestRates(accountIdNum);
+      invalidate.invalidateBankAccounts();
+      if (accountIdNum) {
+        invalidate.invalidateBankAccountInterestRates(accountIdNum);
+        invalidate.invalidateBankAccountBalances(accountIdNum);
+      }
     },
   });
 
   const deleteRateMutation = useMutation<void, unknown, number>({
     mutationFn: (id) => deleteBankAccountInterestRate(id),
     onSuccess: () => {
-      if (accountIdNum) invalidate.invalidateBankAccountInterestRates(accountIdNum);
+      invalidate.invalidateBankAccounts();
+      if (accountIdNum) {
+        invalidate.invalidateBankAccountInterestRates(accountIdNum);
+        invalidate.invalidateBankAccountBalances(accountIdNum);
+      }
     },
   });
 
