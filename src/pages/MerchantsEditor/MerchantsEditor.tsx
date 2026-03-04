@@ -58,15 +58,18 @@ export const MerchantsEditor: React.FC = () => {
     deleteMerchantMutation.mutate(id);
   };
 
-  const handleSaveMerchant = () => {
+  const handleSaveMerchant = (name: string) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
+
     setIsSavingMerchant(true);
     if (editingMerchant) {
       updateMerchantMutation.mutate(
-        { id: editingMerchant.id, name: formName },
+        { id: editingMerchant.id, name: trimmedName },
         { onSettled: () => setIsSavingMerchant(false) }
       );
     } else {
-      createMerchantMutation.mutate(formName, {
+      createMerchantMutation.mutate(trimmedName, {
         onSettled: () => setIsSavingMerchant(false),
       });
     }
