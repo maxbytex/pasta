@@ -81,12 +81,15 @@ export function useCashEditor() {
     });
   };
 
-  const handleSaveCash = () => {
+  const handleSaveCash = (name: string) => {
+    const normalizedName = name.trim();
+    if (!normalizedName) return;
+
     setIsSavingCash(true);
     if (editingCash) {
-      updateCashMutation.mutate({ id: editingCash.id, name: formName }, { onSettled: () => setIsSavingCash(false) });
+      updateCashMutation.mutate({ id: editingCash.id, name: normalizedName }, { onSettled: () => setIsSavingCash(false) });
     } else {
-      createCashMutation.mutate(formName, { onSettled: () => setIsSavingCash(false) });
+      createCashMutation.mutate(normalizedName, { onSettled: () => setIsSavingCash(false) });
     }
     setShowCashModal(false);
   };
