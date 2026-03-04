@@ -35,6 +35,8 @@ export function useCashEditor() {
   const [showBalanceModal, setShowBalanceModal] = useState(false);
   const [editingBalance, setEditingBalance] = useState<CashBalance | null>(null);
   const [isSavingBalance, setIsSavingBalance] = useState(false);
+  const [deletingCashIds, setDeletingCashIds] = useState<Set<number>>(new Set());
+  const [deletingBalanceIds, setDeletingBalanceIds] = useState<Set<number>>(new Set());
 
   const [formName, setFormName] = useState("");
 
@@ -73,9 +75,18 @@ export function useCashEditor() {
 
   const handleDeleteCash = (id: number) => {
     if (!confirm("Delete this cash location and all its balances?")) return;
+
+    setDeletingCashIds((prev) => new Set(prev).add(id));
     deleteCashMutation.mutate(id, {
       onSuccess: () => {
         if (selectedCash?.id === id) setSelectedCash(null);
+      },
+      onSettled: () => {
+        setDeletingCashIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
       },
     });
   };
@@ -86,11 +97,19 @@ export function useCashEditor() {
 
     setIsSavingCash(true);
     if (editingCash) {
-      updateCashMutation.mutate({ id: editingCash.id, name: normalizedName }, { onSettled: () => setIsSavingCash(false) });
+      updateCashMutation.mutate(
+        { id: editingCash.id, name: normalizedName },
+        {
+          onSuccess: () => setShowCashModal(false),
+          onSettled: () => setIsSavingCash(false),
+        },
+      );
     } else {
-      createCashMutation.mutate(normalizedName, { onSettled: () => setIsSavingCash(false) });
+      createCashMutation.mutate(normalizedName, {
+        onSuccess: () => setShowCashModal(false),
+        onSettled: () => setIsSavingCash(false),
+      });
     }
-    setShowCashModal(false);
   };
 
   const handleCreateBalance = () => {
@@ -127,16 +146,40 @@ export function useCashEditor() {
     if (!selectedCash) return;
     setIsSavingBalance(true);
     if (editingBalance) {
-      updateBalanceMutation.mutate({ id: editingBalance.id, amount: formAmount, currency: formCurrency }, { onSettled: () => setIsSavingBalance(false) });
+      updateBalanceMutation.mutate(
+        { id: editingBalance.id, amount: formAmount, currency: formCurrency },
+        {
+          onSuccess: () => setShowBalanceModal(false),
+          onSettled: () => setIsSavingBalance(false),
+        },
+      );
     } else {
-      createBalanceMutation.mutate({ cashId: selectedCash.id, amount: formAmount, currency: formCurrency }, { onSettled: () => { setIsSavingBalance(false); localStorage.setItem("last_used_currency", formCurrency); } });
+      createBalanceMutation.mutate(
+        { cashId: selectedCash.id, amount: formAmount, currency: formCurrency },
+        {
+          onSuccess: () => {
+            setShowBalanceModal(false);
+            localStorage.setItem("last_used_currency", formCurrency);
+          },
+          onSettled: () => setIsSavingBalance(false),
+        },
+      );
     }
-    setShowBalanceModal(false);
   };
 
   const handleDeleteBalance = (id: number) => {
     if (!confirm("Delete this balance?")) return;
-    deleteBalanceMutation.mutate(id);
+
+    setDeletingBalanceIds((prev) => new Set(prev).add(id));
+    deleteBalanceMutation.mutate(id, {
+      onSettled: () => {
+        setDeletingBalanceIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      },
+    });
   };
 
   const isSavingCashList = createCashMutation.isPending || updateCashMutation.isPending || deleteCashMutation.isPending;
@@ -191,6 +234,8 @@ export function useCashEditor() {
     formCurrency,
     setFormCurrency,
     calculateStats,
+    deletingCashIds,
+    deletingBalanceIds,
   };
 }
 

@@ -58,7 +58,7 @@ export const BalanceModal: React.FC<BalanceModalProps> = ({
               disabled={isSavingBalance || !canSave}
               className="px-5 py-3 sm:py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-300 dark:disabled:bg-emerald-700 disabled:opacity-70 disabled:cursor-not-allowed disabled:text-white text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95 disabled:shadow-none cursor-pointer"
             >
-              {isSavingBalance ? "Saving..." : "Save"}
+              {isSavingBalance ? "Savings..." : "Save"}
             </button>
           </div>
         </div>

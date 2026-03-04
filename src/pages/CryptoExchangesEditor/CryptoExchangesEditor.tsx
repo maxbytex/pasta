@@ -11,7 +11,6 @@ import { formatDate } from "../../utils/date-utils";
 import useCryptoExchangesEditor from "./hooks/useCryptoExchangesEditor";
 import ExchangeCard from "./components/ExchangeCard";
 import AssetModal from "./components/AssetModal";
-import SavingBadge from "../../components/common/SavingBadge";
 
 export const CryptoExchangesEditor: React.FC = () => {
   const {
@@ -24,7 +23,6 @@ export const CryptoExchangesEditor: React.FC = () => {
     setShowExchangeModal,
     editingExchange,
     isSavingExchange,
-    isSavingExchangesList,
     handleCreateExchange,
     handleEditExchange,
     handleSaveExchange,
@@ -33,7 +31,6 @@ export const CryptoExchangesEditor: React.FC = () => {
     setShowAssetModal,
     editingAsset,
     isSavingAsset,
-    isSavingAssetsList,
     handleCreateAsset,
     handleEditAsset,
     handleSaveAsset,
@@ -53,6 +50,8 @@ export const CryptoExchangesEditor: React.FC = () => {
     formInvestedCurrency,
     setFormInvestedCurrency,
     calculateStats,
+    deletingExchangeIds,
+    deletingAssetIds,
   } = useCryptoExchangesEditor();
 
   if (!selectedExchange) {
@@ -62,7 +61,7 @@ export const CryptoExchangesEditor: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Crypto Exchanges</h3>
-              {isSavingExchangesList && <SavingBadge />}
+              
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                {exchanges.length} exchanges
@@ -106,7 +105,7 @@ export const CryptoExchangesEditor: React.FC = () => {
             ) : (
              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {exchanges.map((exchange: CryptoExchange) => (
-                  <ExchangeCard key={exchange.id} exchange={exchange} onSelect={setSelectedExchange} />
+                  <ExchangeCard key={exchange.id} exchange={exchange} onSelect={setSelectedExchange} isDeleting={deletingExchangeIds.has(exchange.id)} />
                 ))}
              </div>
           )}
@@ -158,7 +157,8 @@ export const CryptoExchangesEditor: React.FC = () => {
           </button>
           <button
             onClick={() => handleDeleteExchange(selectedExchange.id)}
-            className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl font-semibold text-sm leading-none transition-all active:translate-y-[1px] active:scale-[0.995] cursor-pointer bg-[#ff4d43] text-white hover:opacity-90"
+            disabled={deletingExchangeIds.has(selectedExchange.id)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl font-semibold text-sm leading-none transition-all active:translate-y-[1px] active:scale-[0.995] cursor-pointer bg-[#ff4d43] text-white hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <Trash2 size={16} /> Delete
           </button>
@@ -195,7 +195,7 @@ export const CryptoExchangesEditor: React.FC = () => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Asset History</h4>
-          {isSavingAssetsList && <SavingBadge />}
+          
         </div>
           <button
             onClick={handleCreateAsset}
@@ -225,19 +225,21 @@ export const CryptoExchangesEditor: React.FC = () => {
             {balances.map((balance) => (
               <GradientHistoryCard
                 key={balance.id}
-                borderClassName="border-emerald-500 dark:border-emerald-400"
-                gradient="linear-gradient(135deg, rgb(16, 185, 129), rgb(5, 150, 105))"
+                borderClassName={deletingAssetIds.has(balance.id) ? "border-red-400 dark:border-red-500" : "border-emerald-500 dark:border-emerald-400"}
+                gradient={deletingAssetIds.has(balance.id) ? "linear-gradient(135deg, rgb(248, 113, 113), rgb(239, 68, 68))" : "linear-gradient(135deg, rgb(16, 185, 129), rgb(5, 150, 105))"}
                 actions={
                   <>
                     <button
                       onClick={() => handleEditAsset(balance)}
-                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                      disabled={deletingAssetIds.has(balance.id)}
+                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => handleDeleteAsset(balance.id)}
-                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                      disabled={deletingAssetIds.has(balance.id)}
+                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Trash2 size={16} />
                     </button>

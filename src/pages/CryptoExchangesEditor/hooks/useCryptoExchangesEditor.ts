@@ -24,6 +24,8 @@ export function useCryptoExchangesEditor() {
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [editingAsset, setEditingAsset] = useState<CryptoExchangeBalance | null>(null);
   const [isSavingAsset, setIsSavingAsset] = useState(false);
+  const [deletingExchangeIds, setDeletingExchangeIds] = useState<Set<number>>(new Set());
+  const [deletingAssetIds, setDeletingAssetIds] = useState<Set<number>>(new Set());
 
   const [formName, setFormName] = useState("");
   const [formTax, setFormTax] = useState("");
@@ -73,17 +75,40 @@ export function useCryptoExchangesEditor() {
     const taxToUse = tax ?? formTax;
     const taxPercentage = convertPercentageStringToDecimal(taxToUse) ?? undefined;
     if (editingExchange) {
-      updateExchangeMutation.mutate({ id: editingExchange.id, name: nameToUse, taxPercentage }, { onSettled: () => setIsSavingExchange(false) });
+      updateExchangeMutation.mutate(
+        { id: editingExchange.id, name: nameToUse, taxPercentage },
+        {
+          onSuccess: () => setShowExchangeModal(false),
+          onSettled: () => setIsSavingExchange(false),
+        },
+      );
     } else {
-      createExchangeMutation.mutate({ name: nameToUse, taxPercentage }, { onSettled: () => setIsSavingExchange(false) });
+      createExchangeMutation.mutate(
+        { name: nameToUse, taxPercentage },
+        {
+          onSuccess: () => setShowExchangeModal(false),
+          onSettled: () => setIsSavingExchange(false),
+        },
+      );
     }
-    setShowExchangeModal(false);
   };
 
   const handleDeleteExchange = (id: number) => {
     if (!confirm("Delete this crypto exchange and all its assets?")) return;
-    deleteExchangeMutation.mutate(id);
-    if (selectedExchange?.id === id) setSelectedExchange(null);
+
+    setDeletingExchangeIds((prev) => new Set(prev).add(id));
+    deleteExchangeMutation.mutate(id, {
+      onSuccess: () => {
+        if (selectedExchange?.id === id) setSelectedExchange(null);
+      },
+      onSettled: () => {
+        setDeletingExchangeIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      },
+    });
   };
 
   const handleCreateAsset = () => {
@@ -134,11 +159,22 @@ export function useCryptoExchangesEditor() {
     };
 
     if (editingAsset) {
-      updateAssetMutation.mutate({ id: editingAsset.id, data }, { onSettled: () => setIsSavingAsset(false) });
+      updateAssetMutation.mutate(
+        { id: editingAsset.id, data },
+        {
+          onSuccess: () => setShowAssetModal(false),
+          onSettled: () => setIsSavingAsset(false),
+        },
+      );
     } else {
-      createAssetMutation.mutate({ exchangeId: selectedExchange.id, data }, { onSettled: () => setIsSavingAsset(false) });
+      createAssetMutation.mutate(
+        { exchangeId: selectedExchange.id, data },
+        {
+          onSuccess: () => setShowAssetModal(false),
+          onSettled: () => setIsSavingAsset(false),
+        },
+      );
     }
-    setShowAssetModal(false);
   };
 
   const deleteAssetMutation = useMutation<void, unknown, number>({
@@ -150,7 +186,17 @@ export function useCryptoExchangesEditor() {
 
   const handleDeleteAsset = (id: number) => {
     if (!confirm("Delete this asset?")) return;
-    deleteAssetMutation.mutate(id);
+
+    setDeletingAssetIds((prev) => new Set(prev).add(id));
+    deleteAssetMutation.mutate(id, {
+      onSettled: () => {
+        setDeletingAssetIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      },
+    });
   };
 
   const isSavingExchangesList = createExchangeMutation.isPending || updateExchangeMutation.isPending || deleteExchangeMutation.isPending;
@@ -235,6 +281,8 @@ export function useCryptoExchangesEditor() {
     formInvestedCurrency,
     setFormInvestedCurrency,
     calculateStats,
+    deletingExchangeIds,
+    deletingAssetIds,
   };
 }
 

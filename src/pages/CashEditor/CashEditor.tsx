@@ -9,7 +9,6 @@ import { formatDate } from "../../utils/date-utils";
 import useCashEditor from "./hooks/useCashEditor";
 import CashCard from "./components/CashCard";
 import BalanceModal from "./components/BalanceModal";
-import SavingBadge from "../../components/common/SavingBadge";
 
 
 export const CashEditor: React.FC = () => {
@@ -23,7 +22,6 @@ export const CashEditor: React.FC = () => {
     setShowCashModal,
     editingCash,
     isSavingCash,
-    isSavingCashList,
     handleCreateCash,
     handleEditCash,
     handleSaveCash,
@@ -32,7 +30,6 @@ export const CashEditor: React.FC = () => {
     setShowBalanceModal,
     editingBalance,
     isSavingBalance,
-    isSavingBalancesList,
     handleCreateBalance,
     handleEditBalance,
     handleSaveBalance,
@@ -49,6 +46,8 @@ export const CashEditor: React.FC = () => {
     formCurrency,
     setFormCurrency,
     calculateStats,
+    deletingCashIds,
+    deletingBalanceIds,
   } = useCashEditor();
 
   if (!selectedCash) {
@@ -58,7 +57,6 @@ export const CashEditor: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Cash</h3>
-              {isSavingCashList && <SavingBadge />}
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {cash.length} labels
@@ -102,7 +100,7 @@ export const CashEditor: React.FC = () => {
             ) : (
              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {cash.map((cashItem) => (
-                <CashCard key={cashItem.id} item={cashItem} onSelect={setSelectedCash} />
+                <CashCard key={cashItem.id} item={cashItem} onSelect={setSelectedCash} isDeleting={deletingCashIds.has(cashItem.id)} />
               ))}
             </div>
           )}
@@ -150,7 +148,8 @@ export const CashEditor: React.FC = () => {
           </button>
           <button
             onClick={() => handleDeleteCash(selectedCash.id)}
-            className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl font-semibold text-sm leading-none transition-all active:translate-y-[1px] active:scale-[0.995] cursor-pointer bg-[#ff4d43] text-white hover:opacity-90"
+            disabled={deletingCashIds.has(selectedCash.id)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl font-semibold text-sm leading-none transition-all active:translate-y-[1px] active:scale-[0.995] cursor-pointer bg-[#ff4d43] text-white hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <Trash2 size={16} /> Delete
           </button>
@@ -175,7 +174,6 @@ export const CashEditor: React.FC = () => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Balance History</h4>
-          {isSavingBalancesList && <SavingBadge />}
         </div>
         <button
           onClick={handleCreateBalance}
@@ -205,19 +203,21 @@ export const CashEditor: React.FC = () => {
             {balances.map((balance) => (
               <GradientHistoryCard
                 key={balance.id}
-                borderClassName="border-emerald-500 dark:border-emerald-400"
-                gradient="linear-gradient(135deg, rgb(16, 185, 129), rgb(5, 150, 105))"
+                borderClassName={deletingBalanceIds.has(balance.id) ? "border-red-400 dark:border-red-500" : "border-emerald-500 dark:border-emerald-400"}
+                gradient={deletingBalanceIds.has(balance.id) ? "linear-gradient(135deg, rgb(248, 113, 113), rgb(239, 68, 68))" : "linear-gradient(135deg, rgb(16, 185, 129), rgb(5, 150, 105))"}
                 actions={
                   <>
                     <button
                       onClick={() => handleEditBalance(balance)}
-                    className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                      disabled={deletingBalanceIds.has(balance.id)}
+                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => handleDeleteBalance(balance.id)}
-                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer"
+                      disabled={deletingBalanceIds.has(balance.id)}
+                      className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Trash2 size={16} />
                     </button>
