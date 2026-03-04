@@ -77,6 +77,7 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
   const [formRateValue, setFormRateValue] = useState("");
   const [formRateStartDate, setFormRateStartDate] = useState("");
   const [formRateEndDate, setFormRateEndDate] = useState("");
+  const [formRateError, setFormRateError] = useState<string | null>(null);
 
   // Data is provided by React Query hooks: useBankAccounts, useBankAccountBalances, useBankAccountInterestRates
   // reloadKey will cause parent route to remount or change params; React Query invalidation is used on mutations.
@@ -121,14 +122,14 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
     deleteBalanceMutation.mutate(id);
   };
 
-  const createRateMutation = useMutation<BankAccountInterestRate, unknown, { accountId: number; rate: string; startDate: string; endDate?: string }>({
+  const createRateMutation = useMutation<BankAccountInterestRate, unknown, { accountId: number; rate: number; startDate: string; endDate?: string }>({
     mutationFn: (payload) => createBankAccountInterestRate(payload.accountId, payload.rate, payload.startDate, payload.endDate),
     onSuccess: () => {
       if (accountIdNum) invalidate.invalidateBankAccountInterestRates(accountIdNum);
     },
   });
 
-  const updateRateMutation = useMutation<BankAccountInterestRate, unknown, { id: number; rate: string; startDate: string; endDate?: string }>({
+  const updateRateMutation = useMutation<BankAccountInterestRate, unknown, { id: number; rate: number; startDate: string; endDate?: string }>({
     mutationFn: (payload) => updateBankAccountInterestRate(payload.id, payload.rate, payload.startDate, payload.endDate),
     onSuccess: () => {
       if (accountIdNum) invalidate.invalidateBankAccountInterestRates(accountIdNum);
@@ -144,16 +145,27 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
 
   const handleSaveRate = () => {
     if (!account) return;
-    setIsSavingRate(true);
+
     const decimalRate = convertPercentageStringToDecimal(formRateValue);
-    const rateValue = decimalRate !== null ? decimalRate.toString() : "0";
+    if (decimalRate === null || decimalRate === undefined) {
+      setFormRateError("Please enter a valid interest rate percentage.");
+      return;
+    }
+
+    setFormRateError(null);
+    setIsSavingRate(true);
 
     if (editingRate) {
-      updateRateMutation.mutate({ id: editingRate.id, rate: rateValue, startDate: formRateStartDate, endDate: formRateEndDate || undefined }, { onSettled: () => setIsSavingRate(false) });
+      updateRateMutation.mutate({ id: editingRate.id, rate: decimalRate, startDate: formRateStartDate, endDate: formRateEndDate || undefined }, { onSettled: () => setIsSavingRate(false) });
     } else {
-      createRateMutation.mutate({ accountId: account.id, rate: rateValue, startDate: formRateStartDate, endDate: formRateEndDate || undefined }, { onSettled: () => setIsSavingRate(false) });
+      createRateMutation.mutate({ accountId: account.id, rate: decimalRate, startDate: formRateStartDate, endDate: formRateEndDate || undefined }, { onSettled: () => setIsSavingRate(false) });
     }
     setShowRateModal(false);
+  };
+
+  const handleRateValueChange = (value: React.SetStateAction<string>) => {
+    setFormRateValue(value);
+    if (formRateError) setFormRateError(null);
   };
 
   const handleDeleteRate = (id: number) => {
@@ -263,6 +275,7 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
                   setFormRateValue("");
                   setFormRateStartDate("");
                   setFormRateEndDate("");
+                  setFormRateError(null);
                   setShowRateModal(true);
                 }}
                 onEdit={(rate) => {
@@ -270,6 +283,7 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
                   setFormRateValue(formatDecimalAsPercentageForInput(rate.interestRate));
                   setFormRateStartDate(rate.interestRateStartDate);
                   setFormRateEndDate(rate.interestRateEndDate || "");
+                  setFormRateError(null);
                   setShowRateModal(true);
                 }}
                 onDelete={handleDeleteRate}
@@ -296,13 +310,17 @@ export const BankAccountDetail: React.FC<BankAccountDetailProps> = ({
         show={showRateModal}
         editingRate={editingRate}
         formRateValue={formRateValue}
-        setFormRateValue={setFormRateValue}
+        setFormRateValue={handleRateValueChange}
         formRateStartDate={formRateStartDate}
         setFormRateStartDate={setFormRateStartDate}
         formRateEndDate={formRateEndDate}
         setFormRateEndDate={setFormRateEndDate}
         isSavingRate={isSavingRate}
-        onClose={() => setShowRateModal(false)}
+        formRateError={formRateError}
+        onClose={() => {
+          setFormRateError(null);
+          setShowRateModal(false);
+        }}
         onSave={handleSaveRate}
       />
     </div>

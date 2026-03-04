@@ -93,7 +93,7 @@ export const getBankAccountInterestRates = async (bankAccountId: number, limit =
 
 export const createBankAccountInterestRate = async (
   bankAccountId: number,
-  interestRate: string,
+  interestRate: number,
   interestRateStartDate: string,
   interestRateEndDate?: string,
 ) => {
@@ -108,7 +108,7 @@ export const createBankAccountInterestRate = async (
 
 export const updateBankAccountInterestRate = async (
   id: number,
-  interestRate: string,
+  interestRate: number,
   interestRateStartDate: string,
   interestRateEndDate?: string,
 ) => {

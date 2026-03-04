@@ -10,6 +10,7 @@ export interface RateModalProps {
   setFormRateStartDate: React.Dispatch<React.SetStateAction<string>>;
   formRateEndDate: string;
   setFormRateEndDate: React.Dispatch<React.SetStateAction<string>>;
+  formRateError: string | null;
   isSavingRate: boolean;
   onClose: () => void;
   onSave: () => void;
