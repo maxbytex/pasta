@@ -159,11 +159,14 @@ export function useCryptoExchangesEditor() {
   const handleSaveAsset = () => {
     if (!selectedExchange) return;
     setIsSavingAsset(true);
+    const investedAmount = formInvested.trim();
+    const investedCurrencyCode = formInvestedCurrency.trim().toUpperCase() || getDefaultCurrencyCode();
+
     const data = {
       balance: formAmount,
       symbolCode: formSymbol.toUpperCase(),
-      investedAmount: formInvested || undefined,
-      investedCurrencyCode: formInvested ? formInvestedCurrency.toUpperCase() : undefined,
+      investedAmount: investedAmount || undefined,
+      investedCurrencyCode: investedAmount ? investedCurrencyCode : undefined,
     };
 
     if (editingAsset) {
