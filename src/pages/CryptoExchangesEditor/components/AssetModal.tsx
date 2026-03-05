@@ -19,7 +19,11 @@ export default function AssetModal({
 }: AssetModalProps) {
   if (!isOpen) return null;
 
-  const canSave = formSymbol.trim().length > 0 && formAmount.trim().length > 0;
+  const canSave =
+    formSymbol.trim().length > 0 &&
+    formAmount.trim().length > 0 &&
+    formInvested.trim().length > 0 &&
+    formInvestedCurrency.trim().length > 0;
 
   return (
     <div className="fixed inset-0 bg-black/20 dark:bg-black/40 flex items-center justify-center p-4 z-50">
@@ -61,7 +65,9 @@ export default function AssetModal({
           </div>
           <div className="flex gap-2">
             <div className="flex-1">
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Invested (Optional)</label>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                Flat invested <span className="text-red-500">*</span>
+              </label>
               <input
                 type="number"
                 step="0.01"
@@ -73,11 +79,13 @@ export default function AssetModal({
               />
             </div>
             <div style={{ minWidth: 100 }}>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Currency</label>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                Currency <span className="text-red-500">*</span>
+              </label>
               <CurrencySelect
                 value={formInvestedCurrency}
                 onChange={setFormInvestedCurrency}
-                disabled={isSaving || !formInvested}
+                disabled={isSaving}
               />
             </div>
           </div>

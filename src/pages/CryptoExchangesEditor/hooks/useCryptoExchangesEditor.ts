@@ -140,8 +140,8 @@ export function useCryptoExchangesEditor() {
   type AssetPayload = {
     balance: string;
     symbolCode: string;
-    investedAmount?: string;
-    investedCurrencyCode?: string;
+    investedAmount: string;
+    investedCurrencyCode: string;
   };
 
   const createAssetMutation = useMutation<CryptoExchangeBalance, unknown, { exchangeId: number; data: AssetPayload }>({
@@ -158,15 +158,21 @@ export function useCryptoExchangesEditor() {
 
   const handleSaveAsset = () => {
     if (!selectedExchange) return;
-    setIsSavingAsset(true);
+
+    const symbolCode = formSymbol.trim().toUpperCase();
+    const balance = formAmount.trim();
     const investedAmount = formInvested.trim();
-    const investedCurrencyCode = formInvestedCurrency.trim().toUpperCase() || getDefaultCurrencyCode();
+    const investedCurrencyCode = formInvestedCurrency.trim().toUpperCase();
+
+    if (!symbolCode || !balance || !investedAmount || !investedCurrencyCode) return;
+
+    setIsSavingAsset(true);
 
     const data = {
-      balance: formAmount,
-      symbolCode: formSymbol.toUpperCase(),
-      investedAmount: investedAmount || undefined,
-      investedCurrencyCode: investedAmount ? investedCurrencyCode : undefined,
+      balance,
+      symbolCode,
+      investedAmount,
+      investedCurrencyCode,
     };
 
     if (editingAsset) {
